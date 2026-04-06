@@ -1,0 +1,307 @@
+"use client";
+import { useState } from "react";
+import AppLayout from "@/components/AppLayout";
+
+type ReportType = "masuk" | "resign" | "denda" | "analitik" | null;
+
+const REPORT_OPTIONS: {
+  id: ReportType;
+  icon: string;
+  label: string;
+  desc: string;
+}[] = [
+  { id: "masuk",   icon: "person_add",    label: "Karyawan Masuk",   desc: "Laporan harian/bulanan rekrutmen baru" },
+  { id: "resign",  icon: "person_remove", label: "Karyawan Resign",  desc: "Data terminasi dan perputaran karyawan" },
+  { id: "denda",   icon: "gavel",         label: "Laporan Denda",    desc: "Rekapitulasi pinalti dan kedisiplinan" },
+  { id: "analitik",icon: "analytics",     label: "Analitik SDM",     desc: "Ringkasan statistik dan tren karyawan" },
+];
+
+const ESTIMATE: Record<NonNullable<ReportType>, string> = {
+  masuk:    "~1.8 MB",
+  resign:   "~2.4 MB",
+  denda:    "~1.1 MB",
+  analitik: "~3.2 MB",
+};
+
+const HISTORY = [
+  {
+    id: 1,
+    name: "Laporan_Denda_Q3_2023.xlsx",
+    by: "Admin Kurator",
+    time: "2 jam yang lalu",
+    icon: "table_chart",
+    color: "text-zinc-400",
+    bg: "bg-zinc-800/10",
+    status: "Berhasil",
+    statusColor: "text-red-500",
+  },
+  {
+    id: 2,
+    name: "Karyawan_Masuk_Sept_2023.xlsx",
+    by: "Admin Kurator",
+    time: "1 hari yang lalu",
+    icon: "table_view",
+    color: "text-zinc-200",
+    bg: "bg-zinc-700/10",
+    status: "Berhasil",
+    statusColor: "text-red-500",
+  },
+  {
+    id: 3,
+    name: "Karyawan_Resign_Q2_2023.xlsx",
+    by: "Admin Kurator",
+    time: "3 hari yang lalu",
+    icon: "table_rows",
+    color: "text-white",
+    bg: "bg-zinc-600/10",
+    status: "Berhasil",
+    statusColor: "text-red-500",
+  },
+];
+
+export default function ExportPage() {
+  const [selected, setSelected] = useState<ReportType>("resign");
+  const [startDate, setStartDate] = useState("2024-01-01");
+  const [endDate, setEndDate] = useState("2024-03-31");
+  const [isDownloading, setIsDownloading] = useState(false);
+
+  const handleDownload = () => {
+    if (!selected) return;
+    setIsDownloading(true);
+    
+    // Calls the export API
+    const url = `/api/export/${selected}?start=${startDate}&end=${endDate}`;
+    window.location.href = url;
+    
+    setTimeout(() => setIsDownloading(false), 2000); // Reset state after timeout
+  };
+
+  return (
+    <AppLayout>
+      <div className="p-6 md:p-10 pb-32 max-w-5xl mx-auto lg:mx-0 w-full">
+
+        {/* Hero Header */}
+        <div className="mb-10">
+          <h2 className="text-[2rem] md:text-[2.25rem] font-headline font-bold leading-tight mb-2">
+            Digital Curator{" "}
+            <span className="text-primary tracking-tighter">Exports</span>
+          </h2>
+          <p className="text-on-surface-variant max-w-xl text-sm">
+            Konfigurasi dan unduh laporan manajemen SDM Anda dalam format spreadsheet premium untuk analisis mendalam.
+          </p>
+        </div>
+
+        {/* Bento Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
+
+          {/* LEFT — Config Section */}
+          <div className="lg:col-span-8 space-y-6">
+
+            {/* 1. Report Type */}
+            <div className="glass-card rounded-3xl p-6 md:p-8 border border-white/5">
+              <div className="flex justify-between items-start mb-6">
+                <h4 className="text-lg font-headline font-semibold">1. Pilih Tipe Laporan</h4>
+                <span className="text-[10px] text-on-surface-variant uppercase tracking-widest bg-surface-container-highest px-2 py-1 rounded-lg">
+                  Wajib
+                </span>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {REPORT_OPTIONS.map((opt) => {
+                  const isActive = selected === opt.id;
+                  return (
+                    <button
+                      key={opt.id}
+                      onClick={() => setSelected(opt.id)}
+                      className={`group text-left p-6 rounded-2xl border transition-all duration-300 active:scale-[0.98] cursor-pointer ${
+                        isActive
+                          ? "bg-red-500/10 border-red-500 ring-2 ring-red-500/20"
+                          : "bg-surface-container border-transparent hover:bg-red-500/5 hover:border-red-500/20"
+                      }`}
+                    >
+                      <div
+                        className={`w-12 h-12 rounded-xl bg-red-500/10 flex items-center justify-center text-red-500 mb-4 transition-transform duration-300 ${
+                          isActive ? "scale-110 shadow-lg shadow-red-500/20" : "group-hover:scale-110"
+                        }`}
+                      >
+                        <span
+                          className="material-symbols-outlined"
+                          style={isActive ? { fontVariationSettings: "'FILL' 1" } : {}}
+                        >
+                          {opt.icon}
+                        </span>
+                      </div>
+                      <p className={`font-headline font-bold text-sm mb-1 ${isActive ? "text-red-400" : "text-on-surface"}`}>
+                        {opt.label}
+                      </p>
+                      <p className="text-[11px] text-on-surface-variant">{opt.desc}</p>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* 2. Date Range */}
+            <div className="glass-card rounded-3xl p-6 md:p-8 border border-white/5">
+              <div className="flex justify-between items-start mb-6">
+                <h4 className="text-lg font-headline font-semibold">2. Tentukan Periode</h4>
+                <span className="text-[10px] text-on-surface-variant uppercase tracking-widest bg-surface-container-highest px-2 py-1 rounded-lg">
+                  Otomatis
+                </span>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-3">
+                  <label className="block text-xs font-label text-on-surface-variant uppercase tracking-widest">
+                    Mulai Tanggal
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="date"
+                      value={startDate}
+                      onChange={(e) => setStartDate(e.target.value)}
+                      className="w-full bg-surface-container-highest border border-white/5 rounded-xl py-4 pl-12 pr-4 text-on-surface focus:ring-2 focus:ring-red-500 appearance-none cursor-pointer"
+                    />
+                    <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-red-500 pointer-events-none">
+                      calendar_month
+                    </span>
+                  </div>
+                </div>
+                <div className="space-y-3">
+                  <label className="block text-xs font-label text-on-surface-variant uppercase tracking-widest">
+                    Sampai Tanggal
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="date"
+                      value={endDate}
+                      onChange={(e) => setEndDate(e.target.value)}
+                      className="w-full bg-surface-container-highest border border-white/5 rounded-xl py-4 pl-12 pr-4 text-on-surface focus:ring-2 focus:ring-red-500 appearance-none cursor-pointer"
+                    />
+                    <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-red-500 pointer-events-none">
+                      event
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* RIGHT — Summary & Download */}
+          <div className="lg:col-span-4">
+            <div className="bg-red-950/20 rounded-3xl p-6 md:p-8 border border-red-500/20 flex flex-col h-full min-h-[360px]">
+              <h4 className="text-lg font-headline font-semibold mb-6">Ringkasan Unduhan</h4>
+
+              <div className="space-y-4 flex-1">
+                {/* Format */}
+                <div className="flex items-center gap-4 p-4 bg-surface-container-low rounded-2xl">
+                  <span className="material-symbols-outlined text-secondary" style={{ fontVariationSettings: "'FILL' 1" }}>
+                    description
+                  </span>
+                  <div>
+                    <p className="text-[10px] text-on-surface-variant uppercase tracking-widest">Format Berkas</p>
+                    <p className="text-sm font-bold text-on-surface">Excel Spreadsheet (.xlsx)</p>
+                  </div>
+                </div>
+
+                {/* Size */}
+                <div className="flex items-center gap-4 p-4 bg-surface-container-low rounded-2xl">
+                  <span className="material-symbols-outlined text-secondary">storage</span>
+                  <div>
+                    <p className="text-[10px] text-on-surface-variant uppercase tracking-widest">Estimasi Ukuran</p>
+                    <p className="text-sm font-bold text-on-surface">
+                      {selected ? ESTIMATE[selected] : "— Pilih tipe laporan"}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Tipe terpilih */}
+                <div className="flex items-center gap-4 p-4 bg-surface-container-low rounded-2xl">
+                  <span className="material-symbols-outlined text-primary">assignment</span>
+                  <div>
+                    <p className="text-[10px] text-on-surface-variant uppercase tracking-widest">Tipe Laporan</p>
+                    <p className="text-sm font-bold text-on-surface">
+                      {selected
+                        ? REPORT_OPTIONS.find((r) => r.id === selected)?.label
+                        : "Belum dipilih"}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Info note */}
+                <div className="p-5 bg-surface-container-highest rounded-2xl border-l-4 border-secondary">
+                  <p className="text-xs text-on-surface-variant leading-relaxed">
+                    Sistem akan mengkurasi data berdasarkan periode terpilih secara real-time dari basis data utama.
+                  </p>
+                </div>
+              </div>
+
+              {/* Download Button */}
+              <button
+                onClick={handleDownload}
+                disabled={!selected || isDownloading}
+                className={`liquid-light mt-6 w-full py-5 rounded-2xl font-headline font-extrabold text-on-primary-fixed tracking-tight flex items-center justify-center gap-3 shadow-[0_10px_30px_rgba(220,38,38,0.3)] hover:shadow-[0_15px_40px_rgba(220,38,38,0.4)] active:scale-95 transition-all duration-300 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed`}
+              >
+                {isDownloading ? (
+                  <>
+                    <span className="material-symbols-outlined animate-spin">progress_activity</span>
+                    Memproses...
+                  </>
+                ) : (
+                  <>
+                    <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>
+                      download
+                    </span>
+                    Download Laporan
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Download History */}
+        <div className="mt-14 space-y-6">
+          <div className="flex items-center justify-between">
+            <h4 className="text-xl font-headline font-bold">Riwayat Unduhan</h4>
+            <button className="text-xs font-label text-secondary uppercase tracking-widest hover:underline cursor-pointer transition-opacity hover:opacity-80">
+              Lihat Semua
+            </button>
+          </div>
+
+          <div className="space-y-3">
+            {HISTORY.map((item) => (
+              <div
+                key={item.id}
+                className="flex items-center justify-between p-5 bg-surface-container-low rounded-3xl hover:bg-surface-container transition-colors duration-200"
+              >
+                {/* File Info */}
+                <div className="flex items-center gap-4 min-w-0">
+                  <div className={`w-11 h-11 rounded-full ${item.bg} flex items-center justify-center flex-shrink-0`}>
+                    <span className={`material-symbols-outlined ${item.color}`}>{item.icon}</span>
+                  </div>
+                  <div className="min-w-0">
+                    <p className="font-headline font-bold text-sm truncate">{item.name}</p>
+                    <p className="text-xs text-on-surface-variant mt-0.5">
+                      Diunduh {item.time} oleh {item.by}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Status + Re-download */}
+                <div className="flex items-center gap-4 ml-4 flex-shrink-0">
+                  <div className="hidden sm:block text-right">
+                    <p className="text-[10px] text-on-surface-variant uppercase tracking-widest">Status</p>
+                    <p className={`text-sm font-medium ${item.statusColor}`}>{item.status}</p>
+                  </div>
+                  <button className="p-3 bg-surface-container-highest rounded-xl text-on-surface-variant hover:text-on-surface active:scale-90 transition-all cursor-pointer" title="Unduh ulang">
+                    <span className="material-symbols-outlined text-[20px]">refresh</span>
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+      </div>
+    </AppLayout>
+  );
+}

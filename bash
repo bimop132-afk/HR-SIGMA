@@ -20,3 +20,11 @@ npx tsx scripts/seed.ts
 # Email: admin@hrsigma.local
 
 # Password: admin123
+
+qxBtLO4pt71rXqW3 //dbpass
+
+postgresql://postgres:qxBtLO4pt71rXqW3@db.rnzjjmwcpiudgwcuyzau.supabase.co:5432/postgres
+
+DATABASE_URL=postgresql://postgres:postgres@localhost:5432/hr_sigma
+BETTER_AUTH_SECRET=k8sJ3mFpQ2xR7vN9bY4wA6tU1hL5eOiG0cDfZ8qXnMjKrSaVbWuEyCpIoTlHgRd
+BETTER_AUTH_URL=http://localhost:3000

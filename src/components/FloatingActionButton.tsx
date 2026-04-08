@@ -12,7 +12,7 @@ export default function FloatingActionButton() {
   const [nik, setNik] = useState("");
   const [namaLengkap, setNamaLengkap] = useState("");
   const [jalurMasuk, setJalurMasuk] = useState<"LPK" | "UMUM">("LPK");
-  const [posisi, setPosisi] = useState("PIC Line");
+  const [posisi, setPosisi] = useState("Helper Produksi");
   const [sektor, setSektor] = useState(1);
   const [regu, setRegu] = useState(1);
   const [tanggalMasuk, setTanggalMasuk] = useState("");
@@ -24,7 +24,7 @@ export default function FloatingActionButton() {
     setNik("");
     setNamaLengkap("");
     setJalurMasuk("LPK");
-    setPosisi("PIC Line");
+    setPosisi("Helper Produksi");
     setSektor(1);
     setRegu(1);
     setTanggalMasuk("");
@@ -192,7 +192,7 @@ export default function FloatingActionButton() {
                     onChange={(e) => setPosisi(e.target.value)}
                     className="w-full bg-surface-container-highest border border-white/5 rounded-xl px-4 py-4 text-on-surface focus:ring-2 focus:ring-primary appearance-none custom-select"
                   >
-                    {["PIC Line", "Packing", "Susun", "Sortir", "Lakban", "Foreman"].map((pos) => (
+                    {["Helper Produksi", "PIC", "Foreman"].map((pos) => (
                       <option key={pos} value={pos}>{pos}</option>
                     ))}
                   </select>

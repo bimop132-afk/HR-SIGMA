@@ -196,11 +196,8 @@ export default function OnboardingForm() {
             <option disabled value="">
               Pilih Posisi Pekerjaan
             </option>
-            <option value="PIC Line">PIC Line</option>
-            <option value="Packing">Packing</option>
-            <option value="Susun">Susun</option>
-            <option value="Sortir">Sortir</option>
-            <option value="Lakban">Lakban</option>
+            <option value="Helper Produksi">Helper Produksi</option>
+            <option value="PIC">PIC</option>
             <option value="Foreman">Foreman</option>
           </select>
         </div>

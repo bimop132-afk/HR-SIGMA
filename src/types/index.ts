@@ -4,7 +4,7 @@
 
 export type JalurMasuk = "LPK" | "UMUM";
 export type EmployeeStatus = "AKTIF" | "NON_AKTIF";
-export type Posisi = "PIC Line" | "Packing" | "Susun" | "Sortir" | "Lakban" | "Foreman";
+export type Posisi = "Helper Produksi" | "PIC" | "Foreman";
 
 export type TipeKontrak = "PKWT_1" | "PKWT_2" | "PKWTT";
 export type ContractStatus = "AKTIF" | "SELESAI" | "DIPERPANJANG";

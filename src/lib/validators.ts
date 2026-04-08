@@ -10,7 +10,7 @@ export const createEmployeeSchema = z.object({
     .min(2, "Nama minimal 2 karakter")
     .max(255, "Nama maksimal 255 karakter"),
   jalurMasuk: z.enum(["LPK", "UMUM"]),
-  posisi: z.enum(["PIC Line", "Packing", "Susun", "Sortir", "Lakban", "Foreman"]),
+  posisi: z.enum(["Helper Produksi", "PIC", "Foreman"]),
   sektor: z
     .number()
     .int()

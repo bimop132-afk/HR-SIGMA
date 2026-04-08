@@ -1,85 +1,57 @@
 import { NextResponse } from "next/server";
 import { db } from "@/db";
-import { employees, resignations, contracts } from "@/db/schema";
-import { eq, sql, and, gte, lte } from "drizzle-orm";
+import { employees, contracts, resignations } from "@/db/schema";
+import { eq, sql, and, gte } from "drizzle-orm";
 
-// GET /api/dashboard/kpi — Dashboard KPI metrics
 export async function GET() {
   try {
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = now.getMonth() + 1;
-    const startOfMonth = `${year}-${String(month).padStart(2, "0")}-01`;
-    const endOfMonth = `${year}-${String(month).padStart(2, "0")}-31`;
-
-    // Calculate 30 days from now for contract expiry
-    const thirtyDaysFromNow = new Date(now);
-    thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
-
-    const [
-      [totalAktif],
-      [masukBulanIni],
-      [resignBulanIni],
-      [kontrakHampirHabis],
-    ] = await Promise.all([
-      // Total active employees
-      db
-        .select({ count: sql<number>`count(*)::int` })
-        .from(employees)
-        .where(eq(employees.status, "AKTIF")),
-
-      // New employees this month
-      db
-        .select({ count: sql<number>`count(*)::int` })
-        .from(employees)
-        .where(
-          and(
-            gte(employees.tanggalMasuk, startOfMonth),
-            lte(employees.tanggalMasuk, endOfMonth)
-          )
-        ),
-
-      // Resignations this month
-      db
-        .select({ count: sql<number>`count(*)::int` })
-        .from(resignations)
-        .where(
-          and(
-            gte(resignations.tanggalResign, startOfMonth),
-            lte(resignations.tanggalResign, endOfMonth)
-          )
-        ),
-
-      // Contracts expiring within 30 days
-      db
-        .select({ count: sql<number>`count(*)::int` })
-        .from(contracts)
-        .where(
-          and(
-            eq(contracts.status, "AKTIF"),
-            lte(
-              contracts.tanggalSelesai,
-              thirtyDaysFromNow.toISOString().split("T")[0]
-            ),
-            gte(contracts.tanggalSelesai, now.toISOString().split("T")[0])
-          )
-        ),
-    ]);
+    const today = new Date();
+    const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1).toISOString();
+    
+    const [totalAktifRows] = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(employees)
+      .where(eq(employees.status, "AKTIF"));
+      
+    const [masukBulanIniRows] = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(employees)
+      .where(gte(employees.tanggalMasuk, startOfMonth));
+      
+    const [resignBulanIniRows] = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(resignations)
+      .where(gte(resignations.tanggalResign, startOfMonth));
+      
+    // Kontrak < 30 hari
+    const in30Days = new Date();
+    in30Days.setDate(today.getDate() + 30);
+    const in30DaysStr = in30Days.toISOString();
+    const todayStr = today.toISOString();
+    
+    const [kontrakHampirHabisRows] = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(contracts)
+      .where(
+        and(
+          eq(contracts.status, "AKTIF"),
+          sql`${contracts.tanggalSelesai} <= ${in30DaysStr}`,
+          sql`${contracts.tanggalSelesai} >= ${todayStr}`
+        )
+      );
 
     return NextResponse.json({
       success: true,
       data: {
-        totalAktif: totalAktif.count,
-        masukBulanIni: masukBulanIni.count,
-        resignBulanIni: resignBulanIni.count,
-        kontrakHampirHabis: kontrakHampirHabis.count,
-      },
+        totalAktif: Number(totalAktifRows?.count || 0),
+        masukBulanIni: Number(masukBulanIniRows?.count || 0),
+        resignBulanIni: Number(resignBulanIniRows?.count || 0),
+        kontrakHampirHabis: Number(kontrakHampirHabisRows?.count || 0),
+        percentChange: 2.4 // Mock percent change, can be calculated over previous month
+      }
     });
   } catch (error) {
     console.error("GET /api/dashboard/kpi error:", error);
-    return NextResponse.json(
-      { success: false, error: "Internal server error" },
-      { status: 500 }
-    );
+    return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
   }
 }

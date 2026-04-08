@@ -1,56 +1,86 @@
+"use client";
+import { useEffect, useState } from "react";
+
+interface ResignReason {
+  tipe: string;
+  count: number;
+  percentage: number;
+}
+
+const COLORS = ["#cabeff", "#947dff", "#5de6ff", "#484555"];
+
 export default function ResignReasonsPie() {
+  const [data, setData] = useState<ResignReason[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/analytics/resign-reasons")
+      .then(r => r.json())
+      .then(body => {
+        if (body.success && body.data.length > 0) {
+          setData(body.data);
+        } else {
+          // fallback if empty
+          setData([
+            { tipe: "NORMAL", count: 1, percentage: 100 }
+          ]);
+        }
+      })
+      .finally(() => setLoading(false));
+  }, []);
+
+  const total = 251.2;
+  let currentOffset = 0;
+
   return (
-    <div className="lg:col-span-4 glass p-8 rounded-3xl">
-      <h3 className="text-xl font-bold font-headline mb-2">Alasan Resign</h3>
+    <div className="lg:col-span-4 glass p-8 rounded-3xl flex flex-col">
+      <h3 className="text-xl font-bold font-headline mb-2">Tipe Resign</h3>
       <p className="text-on-surface-variant text-sm mb-8">Distribusi alasan pengunduran diri</p>
       
-      <div className="relative w-48 h-48 mx-auto mb-8">
-        <svg className="transform -rotate-90" viewBox="0 0 100 100">
-          {/* Career Growth (55%) */}
-          <circle cx="50" cy="50" fill="transparent" r="40" stroke="#cabeff" strokeDasharray="140 251.2" strokeWidth="20"></circle>
-          {/* Compensation (24%) */}
-          <circle cx="50" cy="50" fill="transparent" r="40" stroke="#947dff" strokeDasharray="60 251.2" strokeDashoffset="-140" strokeWidth="20"></circle>
-          {/* Work-Life Balance (12%) */}
-          <circle cx="50" cy="50" fill="transparent" r="40" stroke="#5de6ff" strokeDasharray="30 251.2" strokeDashoffset="-200" strokeWidth="20"></circle>
-          {/* Others (9%) */}
-          <circle cx="50" cy="50" fill="transparent" r="40" stroke="#484555" strokeDasharray="21.2 251.2" strokeDashoffset="-230" strokeWidth="20"></circle>
-        </svg>
-        <div className="absolute inset-0 flex items-center justify-center flex-col">
-          <span className="text-2xl font-bold">100%</span>
-          <span className="text-[10px] uppercase text-on-surface-variant">Total</span>
+      {loading ? (
+        <div className="flex-1 flex items-center justify-center">
+          <span className="material-symbols-outlined animate-spin text-4xl text-primary">progress_activity</span>
         </div>
-      </div>
-      
-      <div className="space-y-3">
-        <div className="flex justify-between items-center">
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-primary"></div>
-            <span className="text-sm font-label">Pertumbuhan Karir</span>
+      ) : (
+        <>
+          <div className="relative w-48 h-48 mx-auto mb-8">
+            <svg className="transform -rotate-90 w-full h-full" viewBox="0 0 100 100">
+              {data.map((item, idx) => {
+                const dash = (item.percentage / 100) * total;
+                const offset = currentOffset;
+                currentOffset += dash;
+                return (
+                  <circle 
+                    key={item.tipe}
+                    cx="50" cy="50" fill="transparent" r="40" 
+                    stroke={COLORS[idx % COLORS.length]} 
+                    strokeDasharray={`${dash} ${total}`} 
+                    strokeDashoffset={-offset} 
+                    strokeWidth="20"
+                    className="transition-all duration-1000"
+                  ></circle>
+                );
+              })}
+            </svg>
+            <div className="absolute inset-0 flex items-center justify-center flex-col">
+              <span className="text-2xl font-bold">100%</span>
+              <span className="text-[10px] uppercase text-on-surface-variant">Total</span>
+            </div>
           </div>
-          <span className="text-sm font-bold">55%</span>
-        </div>
-        <div className="flex justify-between items-center">
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-primary-container"></div>
-            <span className="text-sm font-label">Kompensasi</span>
+          
+          <div className="space-y-3 mt-auto">
+            {data.map((item, idx) => (
+              <div key={item.tipe} className="flex justify-between items-center">
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full" style={{ backgroundColor: COLORS[idx % COLORS.length] }}></div>
+                  <span className="text-sm font-label">{item.tipe}</span>
+                </div>
+                <span className="text-sm font-bold">{item.percentage}%</span>
+              </div>
+            ))}
           </div>
-          <span className="text-sm font-bold">24%</span>
-        </div>
-        <div className="flex justify-between items-center">
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-secondary"></div>
-            <span className="text-sm font-label">Work-Life Balance</span>
-          </div>
-          <span className="text-sm font-bold">12%</span>
-        </div>
-        <div className="flex justify-between items-center">
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-outline-variant"></div>
-            <span className="text-sm font-label">Lainnya</span>
-          </div>
-          <span className="text-sm font-bold">9%</span>
-        </div>
-      </div>
+        </>
+      )}
     </div>
   );
 }

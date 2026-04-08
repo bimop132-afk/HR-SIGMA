@@ -1,79 +1,40 @@
 "use client";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import AppLayout from "@/components/AppLayout";
 import DocumentCard from "@/components/dokumen/DocumentCard";
 
 type DocType = "Kontrak" | "KTP" | "NPWP" | "SK" | "Lainnya";
 type FilterType = "Semua" | DocType;
 
-const MOCK_DOCUMENTS = [
-  {
-    id: 1,
-    fileName: "Kontrak_Kerja_Q3_2023.pdf",
-    type: "Kontrak" as DocType,
-    size: "8.2 MB",
-    ownerName: "Budi Setiawan",
-    ownerAvatar:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuDsos0ibQI8v-JS5p9w8v_e-Miy2YvPWW4kFQVLuPuiyNBSrJs7oiBJrcIB92JSBHqP9eAT3SdIDnOlRoBE_4z-PSd38eY7hAfQkbJhv1VFfl2JGTw_CgRFw5lFa1tHMXCqSeks2OzYtTXa7310JSe_7MMKik3VOiIPwtx7NPU5RtakC78OlvShm1QXGyVCHObBUqxp_bEajeXG42GU9PexZTIO-Tu3pRg6ocBR-AZMAlWMEjjaaBblY9j1bqElkDIYPU5ElGoV3Pff",
-    uploadDate: "12 Okt 2023",
-    icon: "description",
-  },
-  {
-    id: 2,
-    fileName: "KTP_Digital_Final.jpg",
-    type: "KTP" as DocType,
-    size: "1.4 MB",
-    ownerName: "Siti Aminah",
-    ownerAvatar:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuBrGLhHbp25ueb0QoDmezqqSdqnhgoaw8fxcxVOFNmwRsPcbO8Gz9iVICpQeUpj15gLpP6iEo_PVa07hy-lGkuX1DfLpSfTMqTQTW6wfy7jO1klQLeRU_dSyfqp7Whc1WScvQIwl1rM2aXg0Wh0LG71LTHQyPftfRsbbcIpMpB5ueWycz-s3GnmwYMdTDeFA556EBaEqqEcKxnrjXPHMbH9rosd6Kzr2dm4Qfw9URgYJvUDlkA665wSbCGbR7xBpWDnX3M4PIkBaVWE",
-    uploadDate: "14 Okt 2023",
-    icon: "badge",
-  },
-  {
-    id: 3,
-    fileName: "SK_Pengangkatan_2023.pdf",
-    type: "SK" as DocType,
-    size: "4.5 MB",
-    ownerName: "Andi Wijaya",
-    ownerAvatar:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuDvug6IETFS2_2P5P6zvFj-t9n6tL9Mtbw83JAdDvvkqFY05TUl38LMHmpFvurQJkno4bOvBR8BnbZmcSTbf1yhzqBIn0uXr78kMJ-iBwxIDb_ETX5pX-DNg5PG4KuL4BFJ8OZ4HfYExQZU5pUpRuuMahKGKVOo0_EnM9_zEDKypzFUOmv2eHIfr21HVw5J3AgPQS2HfcamqWdDwUzHRRdosZMfoc37kS3ulwN5BpV-i-xiVnvEp5OfAvb0phrLM4-ZdRl4ZvocOcNQ",
-    uploadDate: "15 Okt 2023",
-    icon: "gavel",
-  },
-  {
-    id: 4,
-    fileName: "NPWP_Adinda_Putri.pdf",
-    type: "NPWP" as DocType,
-    size: "0.8 MB",
-    ownerName: "Adinda Putri",
-    ownerAvatar:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuClWgVjzVnzbDNAoTRAI38sygzdmpEQyuIlIt_Tpy6xsroKGhG8F0buB8Jh2z92m-FinoR-4otILdCRI9HQ0pwpJet7FnO7UGPUPv1PrtbeeTRx9UZu3IoBz0wm13QR052Hu5dT9h1O2DZBtbeRrAf3u58Ivi-iws1dLYh3RCtab2je_9y7Umx5X-NqPE4yLcOThjrghwwsAgNTjDnZanRWnYKSWrFMh0Pf28ThCmx4EzyU4Lc3rIUS4g3wMWz1aaCoR87VM6VRz0Xp",
-    uploadDate: "16 Okt 2023",
-    icon: "receipt_long",
-  },
-  {
-    id: 5,
-    fileName: "Kontrak_PKWT_Budi_S.pdf",
-    type: "Kontrak" as DocType,
-    size: "6.1 MB",
-    ownerName: "Budi Santoso",
-    ownerAvatar:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuBDZ14UowXXl9Y8JYKrTRwpRo3PCArVXnlGDpUOJbu9z3TAzVtyg7yCf-MYOvhMaYuC8kXjGq5iyzWHBFJuTAV-PNp57-7dYbHL3hvzshYIdJJBA-BAdN6a2I6CGlyg0V8sYkkc0Zj2zDddgn-S2u8c3r-StU6bjz4d4RRiPqtarkN4HUvcrr5KbTrGVnN9Qhprj_9mE1drxYIXwFGsCzoXbONmQhI3larKQhWwMxyFXgO4IilLWjn65K5J_5Sl5_2NRbnZzf2Cwzun",
-    uploadDate: "20 Okt 2023",
-    icon: "description",
-  },
-  {
-    id: 6,
-    fileName: "SK_Jabatan_Citra_L.pdf",
-    type: "SK" as DocType,
-    size: "3.2 MB",
-    ownerName: "Citra Lestari",
-    ownerAvatar:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuBT-4UHYSQfIXLt_cbyIlJ79ImQmWM-6Dz35yPTigapMYSznXLludQci4-6LLQ1EdKDHePBR1I-iqF3tCgMBeOqTAIntgVlIC3MSkNOyWJ47OjLJ9f5W-C7-mkW_nUimRcx_cJNci18Sh5180BM6SBkLuSn2uBBLkuPo26A13nJQbbta2cLhFNQrdIreFqjmuT1_8FboKdNMjNluVfoAOal2tz8UHAhSh0hgUqtKXGpzDmJYUh2i9G0B1NkT0_iQCIx_rIPtg6327sx",
-    uploadDate: "22 Okt 2023",
-    icon: "gavel",
-  },
-];
+interface DocumentItem {
+  id: number;
+  fileName: string;
+  type: DocType;
+  size: string;
+  ownerName: string;
+  ownerAvatar: string;
+  uploadDate: string;
+  icon: string;
+  filePath: string;
+}
+
+const formatSize = (bytes: number) => {
+  if (bytes === 0) return "0 B";
+  const k = 1024;
+  const sizes = ["B", "KB", "MB", "GB"];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + " " + sizes[i];
+};
+
+const getIcon = (tipe: string) => {
+  switch (tipe) {
+    case "Kontrak": return "description";
+    case "KTP": return "badge";
+    case "NPWP": return "receipt_long";
+    case "SK": return "gavel";
+    default: return "folder";
+  }
+};
 
 const FILTER_TABS: FilterType[] = ["Semua", "KTP", "NPWP", "Kontrak", "SK"];
 
@@ -81,9 +42,75 @@ export default function DokumenPage() {
   const [activeFilter, setActiveFilter] = useState<FilterType>("Semua");
   const [searchQuery, setSearchQuery] = useState("");
   const [showUploadModal, setShowUploadModal] = useState(false);
+  const [documents, setDocuments] = useState<DocumentItem[]>([]);
+  const [employees, setEmployees] = useState<{id: number, nama: string}[]>([]);
+  
+  // Upload State
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [file, setFile] = useState<File | null>(null);
+  const [docType, setDocType] = useState<DocType | "">("");
+  const [empId, setEmpId] = useState<string>("");
+  const [isUploading, setIsUploading] = useState(false);
+
+  const fetchDocs = () => {
+    fetch("/api/documents")
+      .then(r => r.json())
+      .then(d => {
+        if (d.success) {
+          const formatted = d.data.map((item: any) => ({
+            ...item,
+            size: formatSize(item.size),
+            icon: getIcon(item.type)
+          }));
+          setDocuments(formatted);
+        }
+      });
+  };
+
+  useEffect(() => {
+    fetchDocs();
+    fetch("/api/employees")
+      .then(r => r.json())
+      .then(d => {
+        if (d.success) {
+          setEmployees(d.data.map((e: any) => ({ id: e.id, nama: e.namaLengkap })));
+        }
+      });
+  }, []);
+
+  const handleUpload = async () => {
+    if (!file || !docType || !empId) return alert("Pilih file, tipe, dan karyawan");
+    setIsUploading(true);
+
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("type", docType);
+    formData.append("employeeId", empId);
+
+    try {
+      const res = await fetch("/api/documents/upload", {
+        method: "POST",
+        body: formData,
+      });
+      const data = await res.json();
+      if (data.success) {
+        setShowUploadModal(false);
+        setFile(null);
+        setDocType("");
+        setEmpId("");
+        fetchDocs(); // Refresh
+      } else {
+        alert("Gagal upload: " + data.error);
+      }
+    } catch (e) {
+      alert("Error uploading");
+    } finally {
+      setIsUploading(false);
+    }
+  };
 
   const filtered = useMemo(() => {
-    return MOCK_DOCUMENTS.filter((doc) => {
+    return documents.filter((doc) => {
       const matchFilter = activeFilter === "Semua" || doc.type === activeFilter;
       const matchSearch =
         searchQuery === "" ||
@@ -204,7 +231,17 @@ export default function DokumenPage() {
             </div>
 
             {/* Drop Zone */}
-            <div className="border-2 border-dashed border-primary/30 rounded-2xl p-8 flex flex-col items-center gap-3 hover:border-primary/60 transition-colors cursor-pointer hover:bg-primary/5">
+            <input 
+              type="file" 
+              ref={fileInputRef} 
+              onChange={(e) => setFile(e.target.files?.[0] || null)} 
+              className="hidden" 
+              accept=".pdf,.jpg,.jpeg,.png"
+            />
+            <div 
+              onClick={() => fileInputRef.current?.click()}
+              className="border-2 border-dashed border-primary/30 rounded-2xl p-8 flex flex-col items-center gap-3 hover:border-primary/60 transition-colors cursor-pointer hover:bg-primary/5"
+            >
               <span
                 className="material-symbols-outlined text-4xl text-primary"
                 style={{ fontVariationSettings: "'FILL' 1" }}
@@ -212,14 +249,14 @@ export default function DokumenPage() {
                 cloud_upload
               </span>
               <p className="text-sm font-medium text-on-surface text-center">
-                Klik atau seret berkas ke sini
+                {file ? file.name : "Klik atau seret berkas ke sini"}
               </p>
               <p className="text-xs text-outline text-center">PDF, JPG, PNG — Maks. 20 MB</p>
             </div>
 
             {/* Form Fields */}
             <div className="space-y-3">
-              <select className="w-full bg-surface-container-high border border-white/5 rounded-xl py-3 px-4 text-sm text-on-surface font-body cursor-pointer">
+              <select value={docType} onChange={e => setDocType(e.target.value as DocType)} className="w-full bg-surface-container-high border border-white/5 rounded-xl py-3 px-4 text-sm text-on-surface font-body cursor-pointer">
                 <option value="">Pilih Jenis Dokumen</option>
                 {(["KTP", "NPWP", "Kontrak", "SK", "Lainnya"] as DocType[]).map((t) => (
                   <option key={t} value={t}>
@@ -227,15 +264,20 @@ export default function DokumenPage() {
                   </option>
                 ))}
               </select>
-              <input
-                className="w-full bg-surface-container-high border border-white/5 rounded-xl py-3 px-4 text-sm text-on-surface placeholder:text-outline font-body"
-                placeholder="Nama Pemilik Berkas"
-                type="text"
-              />
+              <select value={empId} onChange={e => setEmpId(e.target.value)} className="w-full bg-surface-container-high border border-white/5 rounded-xl py-3 px-4 text-sm text-on-surface font-body cursor-pointer">
+                <option value="">Pilih Karyawan</option>
+                {employees.map(e => (
+                  <option key={e.id} value={e.id}>{e.nama}</option>
+                ))}
+              </select>
             </div>
 
-            <button className="w-full liquid-light text-on-primary-fixed font-bold py-3.5 rounded-2xl text-sm transition-all active:scale-95 hover:opacity-90 cursor-pointer">
-              Simpan &amp; Unggah
+            <button 
+              onClick={handleUpload}
+              disabled={isUploading || !file || !docType || !empId}
+              className="w-full liquid-light text-on-primary-fixed font-bold py-3.5 rounded-2xl text-sm transition-all active:scale-95 hover:opacity-90 cursor-pointer disabled:opacity-50"
+            >
+              {isUploading ? "Mengunggah..." : "Simpan & Unggah"}
             </button>
           </div>
         </div>

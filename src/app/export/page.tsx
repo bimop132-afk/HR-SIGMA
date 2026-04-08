@@ -1,76 +1,60 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import AppLayout from "@/components/AppLayout";
 
-type ReportType = "masuk" | "resign" | "denda" | "analitik" | null;
-
-const REPORT_OPTIONS: {
-  id: ReportType;
+interface DownloadHistoryItem {
+  id: number;
+  name: string;
+  by: string;
+  time: string;
   icon: string;
-  label: string;
-  desc: string;
-}[] = [
-  { id: "masuk",   icon: "person_add",    label: "Karyawan Masuk",   desc: "Laporan harian/bulanan rekrutmen baru" },
-  { id: "resign",  icon: "person_remove", label: "Karyawan Resign",  desc: "Data terminasi dan perputaran karyawan" },
-  { id: "denda",   icon: "gavel",         label: "Laporan Denda",    desc: "Rekapitulasi pinalti dan kedisiplinan" },
-  { id: "analitik",icon: "analytics",     label: "Analitik SDM",     desc: "Ringkasan statistik dan tren karyawan" },
-];
-
-const ESTIMATE: Record<NonNullable<ReportType>, string> = {
-  masuk:    "~1.8 MB",
-  resign:   "~2.4 MB",
-  denda:    "~1.1 MB",
-  analitik: "~3.2 MB",
-};
-
-const HISTORY = [
-  {
-    id: 1,
-    name: "Laporan_Denda_Q3_2023.xlsx",
-    by: "Admin Kurator",
-    time: "2 jam yang lalu",
-    icon: "table_chart",
-    color: "text-zinc-400",
-    bg: "bg-zinc-800/10",
-    status: "Berhasil",
-    statusColor: "text-red-500",
-  },
-  {
-    id: 2,
-    name: "Karyawan_Masuk_Sept_2023.xlsx",
-    by: "Admin Kurator",
-    time: "1 hari yang lalu",
-    icon: "table_view",
-    color: "text-zinc-200",
-    bg: "bg-zinc-700/10",
-    status: "Berhasil",
-    statusColor: "text-red-500",
-  },
-  {
-    id: 3,
-    name: "Karyawan_Resign_Q2_2023.xlsx",
-    by: "Admin Kurator",
-    time: "3 hari yang lalu",
-    icon: "table_rows",
-    color: "text-white",
-    bg: "bg-zinc-600/10",
-    status: "Berhasil",
-    statusColor: "text-red-500",
-  },
-];
+  color: string;
+  bg: string;
+  status: string;
+  statusColor: string;
+  url: string;
+}
 
 export default function ExportPage() {
-  const [selected, setSelected] = useState<ReportType>("resign");
+  const [selected, setSelected] = useState<"masuk" | "resign" | "denda" | "analitik" | null>("masuk");
   const [startDate, setStartDate] = useState("2024-01-01");
-  const [endDate, setEndDate] = useState("2024-03-31");
+  const [endDate, setEndDate] = useState("2024-12-31");
   const [isDownloading, setIsDownloading] = useState(false);
+  const [history, setHistory] = useState<DownloadHistoryItem[]>([]);
+
+  useEffect(() => {
+    const saved = localStorage.getItem("export_history");
+    if (saved) {
+      setHistory(JSON.parse(saved));
+    }
+  }, []);
 
   const handleDownload = () => {
     if (!selected) return;
     setIsDownloading(true);
     
     // Calls the export API
-    const url = `/api/export/${selected}?start=${startDate}&end=${endDate}`;
+    const endpoint = selected === "masuk" ? "employees" : selected;
+    const url = `/api/export/${endpoint}?start=${startDate}&end=${endDate}`;
+    
+    const fileName = `Export_${selected}_${new Date().toISOString().split("T")[0]}.xlsx`;
+    const newItem: DownloadHistoryItem = {
+      id: Date.now(),
+      name: fileName,
+      by: "Admin", // Should be user name in future
+      time: "Baru saja",
+      icon: "table_view",
+      color: "text-zinc-200",
+      bg: "bg-zinc-700/10",
+      status: "Berhasil",
+      statusColor: "text-red-500",
+      url: url
+    };
+    
+    const newHistory = [newItem, ...history].slice(0, 5); // Keep last 5
+    setHistory(newHistory);
+    localStorage.setItem("export_history", JSON.stringify(newHistory));
+
     window.location.href = url;
     
     setTimeout(() => setIsDownloading(false), 2000); // Reset state after timeout
@@ -106,12 +90,17 @@ export default function ExportPage() {
                 </span>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {REPORT_OPTIONS.map((opt) => {
+                {[
+                  { id: "masuk",   icon: "person_add",    label: "Karyawan Masuk",   desc: "Laporan harian/bulanan rekrutmen baru" },
+                  { id: "resign",  icon: "person_remove", label: "Karyawan Resign",  desc: "Data terminasi dan perputaran karyawan" },
+                  { id: "denda",   icon: "gavel",         label: "Laporan Denda",    desc: "Rekapitulasi pinalti dan kedisiplinan" },
+                  { id: "analitik",icon: "analytics",     label: "Analitik SDM",     desc: "Ringkasan statistik dan tren karyawan" },
+                ].map((opt) => {
                   const isActive = selected === opt.id;
                   return (
                     <button
                       key={opt.id}
-                      onClick={() => setSelected(opt.id)}
+                      onClick={() => setSelected(opt.id as any)}
                       className={`group text-left p-6 rounded-2xl border transition-all duration-300 active:scale-[0.98] cursor-pointer ${
                         isActive
                           ? "bg-red-500/10 border-red-500 ring-2 ring-red-500/20"
@@ -208,7 +197,7 @@ export default function ExportPage() {
                   <div>
                     <p className="text-[10px] text-on-surface-variant uppercase tracking-widest">Estimasi Ukuran</p>
                     <p className="text-sm font-bold text-on-surface">
-                      {selected ? ESTIMATE[selected] : "— Pilih tipe laporan"}
+                      ~1.5 MB
                     </p>
                   </div>
                 </div>
@@ -218,10 +207,8 @@ export default function ExportPage() {
                   <span className="material-symbols-outlined text-primary">assignment</span>
                   <div>
                     <p className="text-[10px] text-on-surface-variant uppercase tracking-widest">Tipe Laporan</p>
-                    <p className="text-sm font-bold text-on-surface">
-                      {selected
-                        ? REPORT_OPTIONS.find((r) => r.id === selected)?.label
-                        : "Belum dipilih"}
+                    <p className="text-sm font-bold text-on-surface capitalize">
+                      {selected ? `Laporan ${selected}` : "Belum dipilih"}
                     </p>
                   </div>
                 </div>
@@ -268,7 +255,8 @@ export default function ExportPage() {
           </div>
 
           <div className="space-y-3">
-            {HISTORY.map((item) => (
+            {history.length === 0 && <p className="text-on-surface-variant text-sm py-4">Belum ada riwayat unduhan.</p>}
+            {history.map((item) => (
               <div
                 key={item.id}
                 className="flex items-center justify-between p-5 bg-surface-container-low rounded-3xl hover:bg-surface-container transition-colors duration-200"
@@ -292,7 +280,7 @@ export default function ExportPage() {
                     <p className="text-[10px] text-on-surface-variant uppercase tracking-widest">Status</p>
                     <p className={`text-sm font-medium ${item.statusColor}`}>{item.status}</p>
                   </div>
-                  <button className="p-3 bg-surface-container-highest rounded-xl text-on-surface-variant hover:text-on-surface active:scale-90 transition-all cursor-pointer" title="Unduh ulang">
+                  <button onClick={() => window.location.href = item.url} className="p-3 bg-surface-container-highest rounded-xl text-on-surface-variant hover:text-on-surface active:scale-90 transition-all cursor-pointer" title="Unduh ulang">
                     <span className="material-symbols-outlined text-[20px]">refresh</span>
                   </button>
                 </div>

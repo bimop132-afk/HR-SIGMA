@@ -1,34 +1,25 @@
 import { NextResponse } from "next/server";
-import { db } from "@/db";
-import { penalties, employees } from "@/db/schema";
-import { desc, eq } from "drizzle-orm";
+import { supabaseAdmin as supabase } from "@/lib/supabase";
 import * as XLSX from "xlsx";
 
 // GET /api/export/penalties — Export penalties to .xlsx
 export async function GET() {
   try {
-    const data = await db
-      .select({
-        id: penalties.id,
-        name: employees.namaLengkap,
-        nip: employees.nip,
-        alasan: penalties.alasan,
-        jumlah: penalties.jumlah,
-        status: penalties.status,
-        tanggalDenda: penalties.tanggalDenda,
-      })
-      .from(penalties)
-      .innerJoin(employees, eq(penalties.employeeId, employees.id))
-      .orderBy(desc(penalties.createdAt));
+    const { data, error } = await supabase
+      .from("penalties")
+      .select("*, employees(nama_lengkap, nip)")
+      .order("created_at", { ascending: false });
 
-    const worksheetData = data.map((item, idx) => ({
+    if (error) throw error;
+
+    const worksheetData = (data || []).map((item: any, idx) => ({
       No: idx + 1,
-      NIP: item.nip,
-      "Nama Karyawan": item.name,
+      NIP: item.employees?.nip,
+      "Nama Karyawan": item.employees?.nama_lengkap,
       Alasan: item.alasan,
       "Jumlah (Rp)": item.jumlah,
       Status: item.status,
-      "Tanggal Denda": item.tanggalDenda,
+      "Tanggal Denda": item.tanggal_denda,
     }));
 
     const worksheet = XLSX.utils.json_to_sheet(worksheetData);

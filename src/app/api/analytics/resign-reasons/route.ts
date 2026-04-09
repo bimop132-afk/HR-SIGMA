@@ -1,25 +1,25 @@
 import { NextResponse } from "next/server";
-import { db } from "@/db";
-import { resignations } from "@/db/schema";
-import { sql } from "drizzle-orm";
+import { supabaseAdmin as supabase } from "@/lib/supabase";
 
 export async function GET() {
   try {
-    const data = await db
-      .select({
-        tipe: resignations.tipe,
-        count: sql<number>`count(*)`,
-      })
-      .from(resignations)
-      .groupBy(resignations.tipe);
+    const { data, error } = await supabase
+      .from("resignations")
+      .select("tipe");
+
+    if (error) throw error;
+
+    const distributionMap: Record<string, number> = {};
+    (data || []).forEach((r: any) => {
+      distributionMap[r.tipe] = (distributionMap[r.tipe] || 0) + 1;
+    });
       
-    // Transform into percentages & colors
-    const total = data.reduce((acc, curr) => acc + Number(curr.count), 0);
+    const total = (data || []).length;
     
-    const formatted = data.map(item => ({
-      tipe: item.tipe,
-      count: Number(item.count),
-      percentage: total > 0 ? Math.round((Number(item.count) / total) * 100) : 0
+    const formatted = Object.entries(distributionMap).map(([tipe, count]) => ({
+      tipe,
+      count,
+      percentage: total > 0 ? Math.round((count / total) * 100) : 0
     }));
 
     return NextResponse.json({ success: true, data: formatted });

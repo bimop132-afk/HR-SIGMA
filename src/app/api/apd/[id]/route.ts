@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/db";
-import { apdItems } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { supabaseAdmin as supabase } from "@/lib/supabase";
 import { updateApdSchema } from "@/lib/validators";
 
 type Params = { params: Promise<{ id: string }> };
@@ -20,13 +18,21 @@ export async function PUT(request: NextRequest, { params }: Params) {
       );
     }
 
-    const [updated] = await db
-      .update(apdItems)
-      .set({ ...parsed.data, updatedAt: new Date() })
-      .where(eq(apdItems.id, parseInt(id)))
-      .returning();
+    // Map camelCase to snake_case
+    const updateData: any = {
+      status: parsed.data.status,
+      catatan: parsed.data.catatan,
+    };
+    if (parsed.data.tanggalKembali) updateData.tanggal_kembali = parsed.data.tanggalKembali;
 
-    if (!updated) {
+    const { data: updated, error } = await supabase
+      .from("apd_items")
+      .update(updateData)
+      .eq("id", parseInt(id))
+      .select()
+      .single();
+
+    if (error || !updated) {
       return NextResponse.json(
         { success: false, error: "APD item tidak ditemukan" },
         { status: 404 }

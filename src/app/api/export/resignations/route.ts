@@ -1,34 +1,25 @@
 import { NextResponse } from "next/server";
-import { db } from "@/db";
-import { resignations, employees } from "@/db/schema";
-import { desc, eq } from "drizzle-orm";
+import { supabaseAdmin as supabase } from "@/lib/supabase";
 import * as XLSX from "xlsx";
 
 // GET /api/export/resignations — Export resignations to .xlsx
 export async function GET() {
   try {
-    const data = await db
-      .select({
-        id: resignations.id,
-        name: employees.namaLengkap,
-        nip: employees.nip,
-        tipe: resignations.tipe,
-        tanggalResign: resignations.tanggalResign,
-        alasan: resignations.alasan,
-        statusClearance: resignations.statusClearance,
-      })
-      .from(resignations)
-      .innerJoin(employees, eq(resignations.employeeId, employees.id))
-      .orderBy(desc(resignations.createdAt));
+    const { data, error } = await supabase
+      .from("resignations")
+      .select("*, employees(nama_lengkap, nip)")
+      .order("created_at", { ascending: false });
 
-    const worksheetData = data.map((item, idx) => ({
+    if (error) throw error;
+
+    const worksheetData = (data || []).map((item: any, idx) => ({
       No: idx + 1,
-      NIP: item.nip,
-      "Nama Karyawan": item.name,
+      NIP: item.employees?.nip,
+      "Nama Karyawan": item.employees?.nama_lengkap,
       "Tipe Resign": item.tipe,
-      "Tanggal Resign": item.tanggalResign,
+      "Tanggal Resign": item.tanggal_resign,
       Alasan: item.alasan || "-",
-      "Status Clearance": item.statusClearance,
+      "Status Clearance": item.status_clearance,
     }));
 
     const worksheet = XLSX.utils.json_to_sheet(worksheetData);

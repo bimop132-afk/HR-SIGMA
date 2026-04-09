@@ -1,29 +1,29 @@
 import { NextResponse } from "next/server";
-import { db } from "@/db";
-import { employees } from "@/db/schema";
-import { desc } from "drizzle-orm";
+import { supabaseAdmin as supabase } from "@/lib/supabase";
 import * as XLSX from "xlsx";
 
 // GET /api/export/employees — Export employees to .xlsx
 export async function GET() {
   try {
-    const data = await db
-      .select()
-      .from(employees)
-      .orderBy(desc(employees.createdAt));
+    const { data, error } = await supabase
+      .from("employees")
+      .select("*")
+      .order("created_at", { ascending: false });
 
-    const worksheetData = data.map((emp, idx) => ({
+    if (error) throw error;
+
+    const worksheetData = (data || []).map((emp: any, idx) => ({
       No: idx + 1,
       NIP: emp.nip,
-      "Nama Lengkap": emp.namaLengkap,
+      "Nama Lengkap": emp.nama_lengkap,
       NIK: emp.nik,
-      "Jalur Masuk": emp.jalurMasuk,
+      "Jalur Masuk": emp.jalur_masuk,
       Posisi: emp.posisi,
       Sektor: emp.sektor,
       Regu: emp.regu,
       Status: emp.status,
-      "Tanggal Masuk": emp.tanggalMasuk,
-      "Tanggal Keluar": emp.tanggalKeluar || "-",
+      "Tanggal Masuk": emp.tanggal_masuk,
+      "Tanggal Keluar": emp.tanggal_keluar || "-",
     }));
 
     const worksheet = XLSX.utils.json_to_sheet(worksheetData);

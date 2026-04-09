@@ -1,53 +1,40 @@
 import { NextResponse } from "next/server";
-import { db } from "@/db";
-import { employees, contracts, resignations } from "@/db/schema";
-import { eq, sql, and, gte } from "drizzle-orm";
+import { supabaseAdmin as supabase } from "@/lib/supabase";
 
 export async function GET() {
   try {
     const today = new Date();
-    const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1).toISOString();
+    const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1).toISOString().slice(0, 10);
+    const todayStr = today.toISOString().slice(0, 10);
     
-    const [totalAktifRows] = await db
-      .select({ count: sql<number>`count(*)` })
-      .from(employees)
-      .where(eq(employees.status, "AKTIF"));
-      
-    const [masukBulanIniRows] = await db
-      .select({ count: sql<number>`count(*)` })
-      .from(employees)
-      .where(gte(employees.tanggalMasuk, startOfMonth));
-      
-    const [resignBulanIniRows] = await db
-      .select({ count: sql<number>`count(*)` })
-      .from(resignations)
-      .where(gte(resignations.tanggalResign, startOfMonth));
-      
     // Kontrak < 30 hari
     const in30Days = new Date();
     in30Days.setDate(today.getDate() + 30);
-    const in30DaysStr = in30Days.toISOString();
-    const todayStr = today.toISOString();
-    
-    const [kontrakHampirHabisRows] = await db
-      .select({ count: sql<number>`count(*)` })
-      .from(contracts)
-      .where(
-        and(
-          eq(contracts.status, "AKTIF"),
-          sql`${contracts.tanggalSelesai} <= ${in30DaysStr}`,
-          sql`${contracts.tanggalSelesai} >= ${todayStr}`
-        )
-      );
+    const in30DaysStr = in30Days.toISOString().slice(0, 10);
+
+    const [
+      { count: totalAktif },
+      { count: masukBulanIni },
+      { count: resignBulanIni },
+      { count: kontrakHampirHabis }
+    ] = await Promise.all([
+      supabase.from("employees").select("*", { count: "exact", head: true }).eq("status", "AKTIF"),
+      supabase.from("employees").select("*", { count: "exact", head: true }).gte("tanggal_masuk", startOfMonth),
+      supabase.from("resignations").select("*", { count: "exact", head: true }).gte("tanggal_resign", startOfMonth),
+      supabase.from("contracts").select("*", { count: "exact", head: true })
+        .eq("status", "AKTIF")
+        .lte("tanggal_selesai", in30DaysStr)
+        .gte("tanggal_selesai", todayStr)
+    ]);
 
     return NextResponse.json({
       success: true,
       data: {
-        totalAktif: Number(totalAktifRows?.count || 0),
-        masukBulanIni: Number(masukBulanIniRows?.count || 0),
-        resignBulanIni: Number(resignBulanIniRows?.count || 0),
-        kontrakHampirHabis: Number(kontrakHampirHabisRows?.count || 0),
-        percentChange: 2.4 // Mock percent change, can be calculated over previous month
+        totalAktif: totalAktif || 0,
+        masukBulanIni: masukBulanIni || 0,
+        resignBulanIni: resignBulanIni || 0,
+        kontrakHampirHabis: kontrakHampirHabis || 0,
+        percentChange: 2.4 
       }
     });
   } catch (error) {

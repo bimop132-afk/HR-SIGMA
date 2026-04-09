@@ -1,7 +1,5 @@
 import { NextResponse } from "next/server";
-import { db } from "@/db";
-import { activityLogs, employees } from "@/db/schema";
-import { eq, desc, and, sql } from "drizzle-orm";
+import { supabaseAdmin as supabase } from "@/lib/supabase";
 import * as XLSX from "xlsx";
 import { format } from "date-fns";
 
@@ -11,33 +9,23 @@ export async function GET(request: Request) {
     const start = searchParams.get("start");
     const end = searchParams.get("end");
 
-    let conditions = [];
-    if (start) conditions.push(sql`DATE(${activityLogs.createdAt}) >= ${start}`);
-    if (end) conditions.push(sql`DATE(${activityLogs.createdAt}) <= ${end}`);
+    let query = supabase
+      .from("activity_logs")
+      .select("*, employees(nip, nama_lengkap)")
+      .order("created_at", { ascending: false });
 
-    const rawData = await db
-      .select({
-        id: activityLogs.id,
-        tipeAktivitas: activityLogs.tipeAktivitas,
-        deskripsi: activityLogs.deskripsi,
-        detail: activityLogs.detail,
-        createdAt: activityLogs.createdAt,
-        employee: {
-          nip: employees.nip,
-          namaLengkap: employees.namaLengkap,
-        }
-      })
-      .from(activityLogs)
-      .leftJoin(employees, eq(activityLogs.employeeId, employees.id))
-      .where(conditions.length > 0 ? and(...conditions) : undefined)
-      .orderBy(desc(activityLogs.createdAt));
+    if (start) query = query.gte("created_at", `${start}T00:00:00`);
+    if (end) query = query.lte("created_at", `${end}T23:59:59`);
 
-    const worksheetData = rawData.map((a, idx) => ({
+    const { data: rawData, error } = await query;
+    if (error) throw error;
+
+    const worksheetData = (rawData || []).map((a: any, idx) => ({
       No: idx + 1,
-      Waktu: format(new Date(a.createdAt), "dd-MM-yyyy HH:mm"),
-      "Tipe Aktivitas": a.tipeAktivitas,
-      "NIP Karyawan": a.employee ? a.employee.nip : "-",
-      "Nama Karyawan": a.employee ? a.employee.namaLengkap : "-",
+      Waktu: format(new Date(a.created_at), "dd-MM-yyyy HH:mm"),
+      "Tipe Aktivitas": a.tipe_aktivitas,
+      "NIP Karyawan": a.employees ? a.employees.nip : "-",
+      "Nama Karyawan": a.employees ? a.employees.nama_lengkap : "-",
       Deskripsi: a.deskripsi,
       Detail: a.detail || "-",
     }));

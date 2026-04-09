@@ -1,6 +1,4 @@
-import { db } from "@/db";
-import { resignations, employees } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { supabaseAdmin as supabase } from "@/lib/supabase";
 import { format } from "date-fns";
 import { id as idLocale } from "date-fns/locale";
 import { notFound } from "next/navigation";
@@ -14,23 +12,13 @@ export default async function PrintResignPage({ params }: { params: Promise<{ id
     return notFound();
   }
 
-  const [data] = await db
-    .select({
-      tipe: resignations.tipe,
-      tanggalResign: resignations.tanggalResign,
-      employee: {
-        namaLengkap: employees.namaLengkap,
-        nip: employees.nip,
-        posisi: employees.posisi,
-        sektor: employees.sektor,
-        regu: employees.regu,
-      }
-    })
-    .from(resignations)
-    .innerJoin(employees, eq(resignations.employeeId, employees.id))
-    .where(eq(resignations.id, parsedId));
+  const { data, error } = await supabase
+    .from("resignations")
+    .select("*, employees(nama_lengkap, nip, posisi, sektor, regu)")
+    .eq("id", parsedId)
+    .single();
 
-  if (!data) return notFound();
+  if (error || !data) return notFound();
 
   const formattedDate = format(new Date(), "dd MMMM yyyy", { locale: idLocale });
   
@@ -62,12 +50,12 @@ export default async function PrintResignPage({ params }: { params: Promise<{ id
             <tr>
               <td className="w-40 py-1 uppercase">NAMA</td>
               <td className="px-2">:</td>
-              <td className="uppercase font-semibold">{data.employee.namaLengkap}</td>
+              <td className="uppercase font-semibold">{data.employees?.nama_lengkap}</td>
             </tr>
             <tr>
               <td className="w-40 py-1 uppercase">NO KARYAWAN</td>
               <td className="px-2">:</td>
-              <td className="uppercase font-semibold">{data.employee.nip}</td>
+              <td className="uppercase font-semibold">{data.employees?.nip}</td>
             </tr>
             <tr>
               <td className="w-40 py-1 uppercase">DEPARTEMEN</td>
@@ -77,7 +65,7 @@ export default async function PrintResignPage({ params }: { params: Promise<{ id
             <tr>
               <td className="w-40 py-1 uppercase">JABATAN</td>
               <td className="px-2">:</td>
-              <td className="uppercase font-semibold">{data.employee.posisi} Sektor {data.employee.sektor} - Regu {data.employee.regu}</td>
+              <td className="uppercase font-semibold">{data.employees?.posisi} Sektor {data.employees?.sektor} - Regu {data.employees?.regu}</td>
             </tr>
           </tbody>
         </table>

@@ -1,24 +1,34 @@
 import { NextResponse } from "next/server";
-import { db } from "@/db";
-import { resignations } from "@/db/schema";
-import { sql } from "drizzle-orm";
+import { supabaseAdmin as supabase } from "@/lib/supabase";
+import { format, subMonths } from "date-fns";
 
 // GET /api/analytics/attrition — Monthly attrition data
 export async function GET() {
   try {
-    const data = await db
-      .select({
-        month: sql<string>`TO_CHAR(${resignations.tanggalResign}::date, 'YYYY-MM')`,
-        count: sql<number>`count(*)::int`,
-      })
-      .from(resignations)
-      .where(
-        sql`${resignations.tanggalResign}::date >= NOW() - INTERVAL '12 months'`
-      )
-      .groupBy(sql`TO_CHAR(${resignations.tanggalResign}::date, 'YYYY-MM')`)
-      .orderBy(sql`TO_CHAR(${resignations.tanggalResign}::date, 'YYYY-MM')`);
+    const twelveMonthsAgo = subMonths(new Date(), 12).toISOString().slice(0, 10);
 
-    return NextResponse.json({ success: true, data });
+    const { data, error } = await supabase
+      .from("resignations")
+      .select("tanggal_resign")
+      .gte("tanggal_resign", twelveMonthsAgo);
+
+    if (error) throw error;
+
+    const distributionMap: Record<string, number> = {};
+    (data || []).forEach((r: any) => {
+      if (!r.tanggal_resign) return;
+      const month = r.tanggal_resign.substring(0, 7); // YYYY-MM
+      distributionMap[month] = (distributionMap[month] || 0) + 1;
+    });
+
+    const formattedData = Object.entries(distributionMap)
+      .map(([month, count]) => ({
+        month,
+        count,
+      }))
+      .sort((a, b) => a.month.localeCompare(b.month));
+
+    return NextResponse.json({ success: true, data: formattedData });
   } catch (error) {
     console.error("GET /api/analytics/attrition error:", error);
     return NextResponse.json(

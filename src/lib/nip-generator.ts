@@ -1,6 +1,4 @@
-import { db } from "@/db";
-import { employees } from "@/db/schema";
-import { eq, and, like } from "drizzle-orm";
+import { supabaseAdmin as supabase } from "@/lib/supabase";
 
 /**
  * Generate NIP (Nomor Induk Pegawai) otomatis.
@@ -32,15 +30,17 @@ export async function generateNIP(
   const rangeEnd = jalurMasuk === "LPK" ? 299 : 499;
 
   // Find existing NIPs with the same date prefix
-  const existingEmployees = await db
-    .select({ nip: employees.nip })
-    .from(employees)
-    .where(like(employees.nip, `${datePrefix}%`));
+  const { data: existingEmployees, error } = await supabase
+    .from("employees")
+    .select("nip")
+    .like("nip", `${datePrefix}%`);
+
+  if (error) throw error;
 
   // Find the highest sequence number in the current jalur range
   let maxSeq = rangeStart - 1;
 
-  for (const emp of existingEmployees) {
+  for (const emp of (existingEmployees || [])) {
     const seqStr = emp.nip.slice(6); // Last 3 digits
     const seq = parseInt(seqStr, 10);
     if (seq >= rangeStart && seq <= rangeEnd && seq > maxSeq) {

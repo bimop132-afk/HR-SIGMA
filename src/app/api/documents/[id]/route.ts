@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/db";
-import { documents } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { supabaseAdmin as supabase } from "@/lib/supabase";
 import { unlink } from "fs/promises";
 import path from "path";
 
@@ -12,12 +10,13 @@ export async function DELETE(_request: NextRequest, { params }: Params) {
   try {
     const { id } = await params;
 
-    const [doc] = await db
-      .select()
-      .from(documents)
-      .where(eq(documents.id, parseInt(id)));
+    const { data: doc, error: fetchError } = await supabase
+      .from("documents")
+      .select("*")
+      .eq("id", parseInt(id))
+      .single();
 
-    if (!doc) {
+    if (fetchError || !doc) {
       return NextResponse.json(
         { success: false, error: "Dokumen tidak ditemukan" },
         { status: 404 }
@@ -26,14 +25,14 @@ export async function DELETE(_request: NextRequest, { params }: Params) {
 
     // Delete file from filesystem
     try {
-      const filePath = path.join(process.cwd(), "public", doc.filePath);
+      const filePath = path.join(process.cwd(), "public", doc.file_path);
       await unlink(filePath);
     } catch {
       // File may already be deleted, continue
     }
 
     // Delete from DB
-    await db.delete(documents).where(eq(documents.id, parseInt(id)));
+    await supabase.from("documents").delete().eq("id", parseInt(id));
 
     return NextResponse.json({ success: true });
   } catch (error) {

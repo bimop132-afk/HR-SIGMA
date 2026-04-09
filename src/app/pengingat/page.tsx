@@ -1,8 +1,6 @@
 import AppLayout from "@/components/AppLayout";
 import ContractCard from "@/components/pengingat/ContractCard";
-import { db } from "@/db";
-import { contracts, employees } from "@/db/schema";
-import { eq, desc } from "drizzle-orm";
+import { supabaseAdmin as supabase } from "@/lib/supabase";
 import Link from "next/link";
 
 export const dynamic = "force-dynamic";
@@ -13,26 +11,19 @@ export default async function PengingatPage({ searchParams }: { searchParams: Pr
   const currentDate = new Date();
   
   // Fetch active contracts
-  const rawContracts = await db
-    .select({
-      id: contracts.id,
-      tanggalSelesai: contracts.tanggalSelesai,
-      tipeKontrak: contracts.tipeKontrak,
-      employee: {
-        namaLengkap: employees.namaLengkap,
-        nip: employees.nip,
-        posisi: employees.posisi,
-        sektor: employees.sektor,
-      }
-    })
-    .from(contracts)
-    .innerJoin(employees, eq(contracts.employeeId, employees.id))
-    .where(eq(contracts.status, "AKTIF"))
-    .orderBy(desc(contracts.tanggalSelesai));
+  const { data: rawContracts, error } = await supabase
+    .from("contracts")
+    .select("*, employees(nama_lengkap, nip, posisi, sektor)")
+    .eq("status", "AKTIF")
+    .order("tanggal_selesai", { ascending: false });
 
-  const contractData = rawContracts.map((c) => {
+  if (error) {
+    console.error("Fetch contracts error:", error);
+  }
+
+  const contractData = (rawContracts || []).map((c: any) => {
     // Calculate days left
-    const endDate = new Date(c.tanggalSelesai);
+    const endDate = new Date(c.tanggal_selesai);
     const diffTime = endDate.getTime() - currentDate.getTime();
     const daysLeft = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     
@@ -41,13 +32,13 @@ export default async function PengingatPage({ searchParams }: { searchParams: Pr
     else if (daysLeft <= 30) severity = "warning";
 
     return {
-      name: c.employee.namaLengkap,
-      nip: c.employee.nip,
-      position: c.employee.posisi,
-      department: `Sektor ${c.employee.sektor}`,
+      name: c.employees?.nama_lengkap,
+      nip: c.employees?.nip,
+      position: c.employees?.posisi,
+      department: `Sektor ${c.employees?.sektor}`,
       daysLeft,
       severity,
-      avatar: "", // Will fall back to initials if implemented this way, or we can use empty.
+      avatar: "", 
     };
   })
   .filter((c) => {

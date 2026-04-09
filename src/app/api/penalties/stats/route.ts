@@ -1,7 +1,5 @@
 import { NextResponse } from "next/server";
-import { db } from "@/db";
-import { penalties } from "@/db/schema";
-import { sql, eq, and, gte, lte } from "drizzle-orm";
+import { supabaseAdmin as supabase } from "@/lib/supabase";
 
 // GET /api/penalties/stats — Get penalty statistics for current month
 export async function GET() {
@@ -10,22 +8,29 @@ export async function GET() {
     const year = now.getFullYear();
     const month = now.getMonth() + 1;
     const startDate = `${year}-${String(month).padStart(2, "0")}-01`;
-    const endDate = `${year}-${String(month).padStart(2, "0")}-31`;
+    const lastDay = new Date(year, month, 0).getDate();
+    const endDate = `${year}-${String(month).padStart(2, "0")}-${String(lastDay).padStart(2, "0")}`;
 
-    const [stats] = await db
-      .select({
-        totalPeriode: sql<number>`COALESCE(SUM(${penalties.jumlah}), 0)::int`,
-        totalBelumBayar: sql<number>`COALESCE(SUM(CASE WHEN ${penalties.status} = 'BELUM_BAYAR' THEN ${penalties.jumlah} ELSE 0 END), 0)::int`,
-        totalLunas: sql<number>`COALESCE(SUM(CASE WHEN ${penalties.status} = 'LUNAS' THEN ${penalties.jumlah} ELSE 0 END), 0)::int`,
-        jumlahRecord: sql<number>`count(*)::int`,
-      })
-      .from(penalties)
-      .where(
-        and(
-          gte(penalties.tanggalDenda, startDate),
-          lte(penalties.tanggalDenda, endDate)
-        )
-      );
+    const { data, error } = await supabase
+      .from("penalties")
+      .select("*")
+      .gte("tanggal_denda", startDate)
+      .lte("tanggal_denda", endDate);
+
+    if (error) throw error;
+
+    const stats = (data || []).reduce((acc, curr) => {
+      acc.totalPeriode += curr.jumlah;
+      if (curr.status === 'BELUM_BAYAR') acc.totalBelumBayar += curr.jumlah;
+      if (curr.status === 'LUNAS') acc.totalLunas += curr.jumlah;
+      acc.jumlahRecord += 1;
+      return acc;
+    }, {
+      totalPeriode: 0,
+      totalBelumBayar: 0,
+      totalLunas: 0,
+      jumlahRecord: 0
+    });
 
     return NextResponse.json({ success: true, data: stats });
   } catch (error) {

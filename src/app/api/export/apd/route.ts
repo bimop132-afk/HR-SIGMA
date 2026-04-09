@@ -1,37 +1,26 @@
 import { NextResponse } from "next/server";
-import { db } from "@/db";
-import { apdItems, employees } from "@/db/schema";
-import { desc, eq } from "drizzle-orm";
+import { supabaseAdmin as supabase } from "@/lib/supabase";
 import * as XLSX from "xlsx";
 
 // GET /api/export/apd — Export APD data to .xlsx
 export async function GET() {
   try {
-    const data = await db
-      .select({
-        id: apdItems.id,
-        name: employees.namaLengkap,
-        nip: employees.nip,
-        jenisApd: apdItems.jenisApd,
-        status: apdItems.status,
-        depositAmount: apdItems.depositAmount,
-        tanggalPinjam: apdItems.tanggalPinjam,
-        tanggalKembali: apdItems.tanggalKembali,
-        catatan: apdItems.catatan,
-      })
-      .from(apdItems)
-      .innerJoin(employees, eq(apdItems.employeeId, employees.id))
-      .orderBy(desc(apdItems.createdAt));
+    const { data, error } = await supabase
+      .from("apd_items")
+      .select("*, employees(nama_lengkap, nip)")
+      .order("created_at", { ascending: false });
 
-    const worksheetData = data.map((item, idx) => ({
+    if (error) throw error;
+
+    const worksheetData = (data || []).map((item: any, idx) => ({
       No: idx + 1,
-      NIP: item.nip,
-      "Nama Karyawan": item.name,
-      "Jenis APD": item.jenisApd,
+      NIP: item.employees?.nip,
+      "Nama Karyawan": item.employees?.nama_lengkap,
+      "Jenis APD": item.jenis_apd,
       Status: item.status,
-      "Deposit (Rp)": item.depositAmount,
-      "Tanggal Pinjam": item.tanggalPinjam,
-      "Tanggal Kembali": item.tanggalKembali || "-",
+      "Deposit (Rp)": item.deposit_amount,
+      "Tanggal Pinjam": item.tanggal_pinjam,
+      "Tanggal Kembali": item.tanggal_kembali || "-",
       Catatan: item.catatan || "-",
     }));
 

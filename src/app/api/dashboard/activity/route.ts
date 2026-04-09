@@ -1,27 +1,28 @@
 import { NextResponse } from "next/server";
-import { db } from "@/db";
-import { activityLogs, employees } from "@/db/schema";
-import { desc, eq } from "drizzle-orm";
+import { supabaseAdmin as supabase } from "@/lib/supabase";
 
 // GET /api/dashboard/activity — Recent activity feed
 export async function GET() {
   try {
-    const data = await db
-      .select({
-        id: activityLogs.id,
-        employeeId: activityLogs.employeeId,
-        employeeName: employees.namaLengkap,
-        tipeAktivitas: activityLogs.tipeAktivitas,
-        deskripsi: activityLogs.deskripsi,
-        detail: activityLogs.detail,
-        createdAt: activityLogs.createdAt,
-      })
-      .from(activityLogs)
-      .leftJoin(employees, eq(activityLogs.employeeId, employees.id))
-      .orderBy(desc(activityLogs.createdAt))
+    const { data, error } = await supabase
+      .from("activity_logs")
+      .select("*, employees(nama_lengkap)")
+      .order("created_at", { ascending: false })
       .limit(10);
 
-    return NextResponse.json({ success: true, data });
+    if (error) throw error;
+
+    const formattedData = (data || []).map((l: any) => ({
+      id: l.id,
+      employeeId: l.employee_id,
+      employeeName: l.employees?.nama_lengkap,
+      tipeAktivitas: l.tipe_aktivitas,
+      deskripsi: l.deskripsi,
+      detail: l.detail,
+      createdAt: l.created_at,
+    }));
+
+    return NextResponse.json({ success: true, data: formattedData });
   } catch (error) {
     console.error("GET /api/dashboard/activity error:", error);
     return NextResponse.json(

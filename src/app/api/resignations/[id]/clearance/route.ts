@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/db";
-import { clearanceItems } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { supabaseAdmin as supabase } from "@/lib/supabase";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -9,12 +7,14 @@ type Params = { params: Promise<{ id: string }> };
 export async function GET(_request: NextRequest, { params }: Params) {
   try {
     const { id } = await params;
-    const items = await db
-      .select()
-      .from(clearanceItems)
-      .where(eq(clearanceItems.resignationId, parseInt(id)));
+    const { data: items, error } = await supabase
+      .from("clearance_items")
+      .select("*")
+      .eq("resignation_id", parseInt(id));
 
-    return NextResponse.json({ success: true, data: items });
+    if (error) throw error;
+
+    return NextResponse.json({ success: true, data: items || [] });
   } catch (error) {
     console.error("GET /api/resignations/:id/clearance error:", error);
     return NextResponse.json(

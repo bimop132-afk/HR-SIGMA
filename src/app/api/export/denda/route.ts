@@ -1,7 +1,5 @@
 import { NextResponse } from "next/server";
-import { db } from "@/db";
-import { penalties, employees } from "@/db/schema";
-import { eq, desc, and, gte, lte } from "drizzle-orm";
+import { supabaseAdmin as supabase } from "@/lib/supabase";
 import * as XLSX from "xlsx";
 
 export async function GET(request: Request) {
@@ -10,36 +8,24 @@ export async function GET(request: Request) {
     const start = searchParams.get("start");
     const end = searchParams.get("end");
 
-    let conditions = [];
-    if (start) conditions.push(gte(penalties.tanggalDenda, start));
-    if (end) conditions.push(lte(penalties.tanggalDenda, end));
+    let query = supabase
+      .from("penalties")
+      .select("*, employees(nip, nama_lengkap, posisi, sektor)")
+      .order("tanggal_denda", { ascending: false });
 
-    const rawData = await db
-      .select({
-        id: penalties.id,
-        jumlah: penalties.jumlah,
-        tanggalDenda: penalties.tanggalDenda,
-        alasan: penalties.alasan,
-        status: penalties.status,
-        employee: {
-          nip: employees.nip,
-          namaLengkap: employees.namaLengkap,
-          posisi: employees.posisi,
-          sektor: employees.sektor,
-        }
-      })
-      .from(penalties)
-      .innerJoin(employees, eq(penalties.employeeId, employees.id))
-      .where(conditions.length > 0 ? and(...conditions) : undefined)
-      .orderBy(desc(penalties.tanggalDenda));
+    if (start) query = query.gte("tanggal_denda", start);
+    if (end) query = query.lte("tanggal_denda", end);
 
-    const worksheetData = rawData.map((p, idx) => ({
+    const { data: rawData, error } = await query;
+    if (error) throw error;
+
+    const worksheetData = (rawData || []).map((p: any, idx) => ({
       No: idx + 1,
-      NIP: p.employee.nip,
-      "Nama Lengkap": p.employee.namaLengkap,
-      Posisi: p.employee.posisi,
-      Sektor: p.employee.sektor,
-      "Tanggal Denda": p.tanggalDenda,
+      NIP: p.employees?.nip,
+      "Nama Lengkap": p.employees?.nama_lengkap,
+      Posisi: p.employees?.posisi,
+      Sektor: p.employees?.sektor,
+      "Tanggal Denda": p.tanggal_denda,
       Jumlah: p.jumlah,
       Alasan: p.alasan,
       Status: p.status,

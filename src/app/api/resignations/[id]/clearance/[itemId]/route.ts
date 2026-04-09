@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/db";
-import { clearanceItems } from "@/db/schema";
-import { eq, and } from "drizzle-orm";
+import { supabaseAdmin as supabase } from "@/lib/supabase";
 
 type Params = { params: Promise<{ id: string; itemId: string }> };
 
@@ -16,21 +14,18 @@ export async function PUT(request: NextRequest, { params }: Params) {
     };
 
     if (body.status === "VERIFIED") {
-      updateData.verifiedAt = new Date();
+      updateData.verified_at = new Date().toISOString();
     }
 
-    const [updated] = await db
-      .update(clearanceItems)
-      .set(updateData)
-      .where(
-        and(
-          eq(clearanceItems.id, parseInt(itemId)),
-          eq(clearanceItems.resignationId, parseInt(id))
-        )
-      )
-      .returning();
+    const { data: updated, error } = await supabase
+      .from("clearance_items")
+      .update(updateData)
+      .eq("id", parseInt(itemId))
+      .eq("resignation_id", parseInt(id))
+      .select()
+      .single();
 
-    if (!updated) {
+    if (error || !updated) {
       return NextResponse.json(
         { success: false, error: "Item clearance tidak ditemukan" },
         { status: 404 }

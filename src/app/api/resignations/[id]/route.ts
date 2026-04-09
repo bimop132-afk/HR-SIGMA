@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/db";
-import { resignations, clearanceItems } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { supabaseAdmin as supabase } from "@/lib/supabase";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -11,13 +9,14 @@ export async function PUT(request: NextRequest, { params }: Params) {
     const { id } = await params;
     const body = await request.json();
 
-    const [updated] = await db
-      .update(resignations)
-      .set({ ...body, updatedAt: new Date() })
-      .where(eq(resignations.id, parseInt(id)))
-      .returning();
+    const { data: updated, error } = await supabase
+      .from("resignations")
+      .update({ ...body })
+      .eq("id", parseInt(id))
+      .select()
+      .single();
 
-    if (!updated) {
+    if (error || !updated) {
       return NextResponse.json(
         { success: false, error: "Data resign tidak ditemukan" },
         { status: 404 }

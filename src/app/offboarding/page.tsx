@@ -3,9 +3,7 @@ import OffboardingHero from "@/components/OffboardingHero";
 import OffboardingStatsGrid from "@/components/OffboardingStatsGrid";
 import ResignHistoryTable from "@/components/ResignHistoryTable";
 import ClearanceChecklistCard from "@/components/ClearanceChecklistCard";
-import { db } from "@/db";
-import { resignations, employees } from "@/db/schema";
-import { desc, eq } from "drizzle-orm";
+import { supabaseAdmin as supabase } from "@/lib/supabase";
 
 export const dynamic = "force-dynamic";
 
@@ -14,31 +12,26 @@ function getInitials(name: string) {
 }
 
 export default async function OffboardingPage() {
-  const rawResignations = await db
-    .select({
-      id: resignations.id,
-      date: resignations.tanggalResign,
-      type: resignations.tipe,
-      statusClearance: resignations.statusClearance,
-      employee: {
-        namaLengkap: employees.namaLengkap,
-        nip: employees.nip,
-      }
-    })
-    .from(resignations)
-    .innerJoin(employees, eq(resignations.employeeId, employees.id))
-    .orderBy(desc(resignations.tanggalResign));
+  const { data: rawResignations, error } = await supabase
+    .from("resignations")
+    .select("*, employees(nama_lengkap, nip)")
+    .order("tanggal_resign", { ascending: false });
 
-  const historyData = rawResignations.map((r) => {
+  if (error) {
+    console.error("Fetch resignations error:", error);
+  }
+
+  const historyData = (rawResignations || []).map((r: any) => {
+    const employeeName = r.employees?.nama_lengkap || "Unknown";
     return {
       id: r.id,
-      employeeName: r.employee.namaLengkap,
-      employeeNip: r.employee.nip,
-      date: r.date,
-      type: r.type,
-      statusClearance: r.statusClearance,
-      initials: getInitials(r.employee.namaLengkap),
-      avatarColor: r.statusClearance === "SELESAI" ? "bg-surface-variant text-on-surface-variant" : "bg-primary-container text-on-primary-container"
+      employeeName,
+      employeeNip: r.employees?.nip || "Unknown",
+      date: r.tanggal_resign,
+      type: r.tipe,
+      statusClearance: r.status_clearance,
+      initials: getInitials(employeeName),
+      avatarColor: r.status_clearance === "SELESAI" ? "bg-surface-variant text-on-surface-variant" : "bg-primary-container text-on-primary-container"
     };
   });
 

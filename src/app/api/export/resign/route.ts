@@ -1,7 +1,5 @@
 import { NextResponse } from "next/server";
-import { db } from "@/db";
-import { resignations, employees } from "@/db/schema";
-import { eq, desc, and, gte, lte } from "drizzle-orm";
+import { supabaseAdmin as supabase } from "@/lib/supabase";
 import * as XLSX from "xlsx";
 
 export async function GET(request: Request) {
@@ -10,39 +8,27 @@ export async function GET(request: Request) {
     const start = searchParams.get("start");
     const end = searchParams.get("end");
 
-    let conditions = [];
-    if (start) conditions.push(gte(resignations.tanggalResign, start));
-    if (end) conditions.push(lte(resignations.tanggalResign, end));
+    let query = supabase
+      .from("resignations")
+      .select("*, employees(nip, nama_lengkap, posisi, sektor)")
+      .order("tanggal_resign", { ascending: false });
 
-    const rawData = await db
-      .select({
-        id: resignations.id,
-        tipe: resignations.tipe,
-        tanggalResign: resignations.tanggalResign,
-        alasan: resignations.alasan,
-        statusClearance: resignations.statusClearance,
-        employee: {
-          nip: employees.nip,
-          namaLengkap: employees.namaLengkap,
-          posisi: employees.posisi,
-          sektor: employees.sektor,
-        }
-      })
-      .from(resignations)
-      .innerJoin(employees, eq(resignations.employeeId, employees.id))
-      .where(conditions.length > 0 ? and(...conditions) : undefined)
-      .orderBy(desc(resignations.tanggalResign));
+    if (start) query = query.gte("tanggal_resign", start);
+    if (end) query = query.lte("tanggal_resign", end);
 
-    const worksheetData = rawData.map((r, idx) => ({
+    const { data: rawData, error } = await query;
+    if (error) throw error;
+
+    const worksheetData = (rawData || []).map((r: any, idx) => ({
       No: idx + 1,
-      NIP: r.employee.nip,
-      "Nama Lengkap": r.employee.namaLengkap,
-      Posisi: r.employee.posisi,
-      Sektor: r.employee.sektor,
+      NIP: r.employees?.nip,
+      "Nama Lengkap": r.employees?.nama_lengkap,
+      Posisi: r.employees?.posisi,
+      Sektor: r.employees?.sektor,
       Tipe: r.tipe,
-      "Tanggal Resign": r.tanggalResign,
+      "Tanggal Resign": r.tanggal_resign,
       Alasan: r.alasan || "-",
-      Clearance: r.statusClearance,
+      Clearance: r.status_clearance,
     }));
 
     const worksheet = XLSX.utils.json_to_sheet(worksheetData);

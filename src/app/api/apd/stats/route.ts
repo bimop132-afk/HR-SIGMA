@@ -1,20 +1,29 @@
 import { NextResponse } from "next/server";
-import { db } from "@/db";
-import { apdItems } from "@/db/schema";
-import { sql } from "drizzle-orm";
+import { supabaseAdmin as supabase } from "@/lib/supabase";
 
 // GET /api/apd/stats — APD statistics
 export async function GET() {
   try {
-    const [stats] = await db
-      .select({
-        totalDipinjam: sql<number>`COALESCE(SUM(CASE WHEN ${apdItems.status} = 'DIPINJAM' THEN 1 ELSE 0 END), 0)::int`,
-        totalDikembalikan: sql<number>`COALESCE(SUM(CASE WHEN ${apdItems.status} = 'DIKEMBALIKAN' THEN 1 ELSE 0 END), 0)::int`,
-        totalHilang: sql<number>`COALESCE(SUM(CASE WHEN ${apdItems.status} = 'HILANG' THEN 1 ELSE 0 END), 0)::int`,
-        totalDeposit: sql<number>`COALESCE(SUM(${apdItems.depositAmount}), 0)::int`,
-        totalItems: sql<number>`count(*)::int`,
-      })
-      .from(apdItems);
+    const { data, error } = await supabase
+      .from("apd_items")
+      .select("*");
+
+    if (error) throw error;
+
+    const stats = (data || []).reduce((acc, curr) => {
+      if (curr.status === 'DIPINJAM') acc.totalDipinjam += 1;
+      if (curr.status === 'DIKEMBALIKAN') acc.totalDikembalikan += 1;
+      if (curr.status === 'HILANG') acc.totalHilang += 1;
+      acc.totalDeposit += curr.deposit_amount || 0;
+      acc.totalItems += 1;
+      return acc;
+    }, {
+      totalDipinjam: 0,
+      totalDikembalikan: 0,
+      totalHilang: 0,
+      totalDeposit: 0,
+      totalItems: 0
+    });
 
     return NextResponse.json({ success: true, data: stats });
   } catch (error) {

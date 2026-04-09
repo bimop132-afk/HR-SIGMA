@@ -1,35 +1,31 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/db";
-import {
-  resignations,
-  employees,
-  clearanceItems,
-  activityLogs,
-} from "@/db/schema";
-import { eq, desc } from "drizzle-orm";
+import { supabaseAdmin as supabase } from "@/lib/supabase";
 import { createResignationSchema } from "@/lib/validators";
 
 // GET /api/resignations — List resignations
 export async function GET() {
   try {
-    const data = await db
-      .select({
-        id: resignations.id,
-        employeeId: resignations.employeeId,
-        name: employees.namaLengkap,
-        nip: employees.nip,
-        fotoUrl: employees.fotoUrl,
-        tipe: resignations.tipe,
-        tanggalResign: resignations.tanggalResign,
-        alasan: resignations.alasan,
-        statusClearance: resignations.statusClearance,
-        createdAt: resignations.createdAt,
-      })
-      .from(resignations)
-      .innerJoin(employees, eq(resignations.employeeId, employees.id))
-      .orderBy(desc(resignations.createdAt));
+    const { data, error } = await supabase
+      .from("resignations")
+      .select("*, employees(nama_lengkap, nip, foto_url)")
+      .order("created_at", { ascending: false });
 
-    return NextResponse.json({ success: true, data });
+    if (error) throw error;
+
+    const formattedData = data.map((r: any) => ({
+      id: r.id,
+      employeeId: r.employee_id,
+      name: r.employees?.nama_lengkap,
+      nip: r.employees?.nip,
+      fotoUrl: r.employees?.foto_url,
+      tipe: r.tipe,
+      tanggalResign: r.tanggal_resign,
+      alasan: r.alasan,
+      statusClearance: r.status_clearance,
+      createdAt: r.created_at,
+    }));
+
+    return NextResponse.json({ success: true, data: formattedData });
   } catch (error) {
     console.error("GET /api/resignations error:", error);
     return NextResponse.json(
@@ -53,17 +49,17 @@ export async function POST(request: NextRequest) {
     }
 
     // Update employee status to NON_AKTIF
-    const [emp] = await db
-      .update(employees)
-      .set({
+    const { data: emp, error: emError } = await supabase
+      .from("employees")
+      .update({
         status: "NON_AKTIF",
-        tanggalKeluar: parsed.data.tanggalResign,
-        updatedAt: new Date(),
+        tanggal_keluar: parsed.data.tanggalResign,
       })
-      .where(eq(employees.id, parsed.data.employeeId))
-      .returning();
+      .eq("id", parsed.data.employeeId)
+      .select()
+      .single();
 
-    if (!emp) {
+    if (emError || !emp) {
       return NextResponse.json(
         { success: false, error: "Karyawan tidak ditemukan" },
         { status: 404 }
@@ -71,40 +67,46 @@ export async function POST(request: NextRequest) {
     }
 
     // Create resignation record
-    const [newResignation] = await db
-      .insert(resignations)
-      .values({
-        ...parsed.data,
-        statusClearance: "PENDING",
+    const { data: newResignation, error: reError } = await supabase
+      .from("resignations")
+      .insert({
+        employee_id: parsed.data.employeeId,
+        tipe: parsed.data.tipe,
+        tanggal_resign: parsed.data.tanggalResign,
+        alasan: parsed.data.alasan,
+        status_clearance: "PENDING",
       })
-      .returning({ id: resignations.id });
+      .select("id")
+      .single();
+
+    if (reError) throw reError;
 
     // Create default clearance items
     const defaultClearanceItems = [
       {
-        resignationId: newResignation.id,
-        namaItem: "Pengembalian ID Card",
+        resignation_id: newResignation.id,
+        nama_item: "Pengembalian ID Card",
         deskripsi: "Diserahkan ke Kantor",
       },
       {
-        resignationId: newResignation.id,
-        namaItem: "Alat Pelindung Diri (APD)",
+        resignation_id: newResignation.id,
+        nama_item: "Alat Pelindung Diri (APD)",
         deskripsi: "Seragam, Sepatu, Haircup, Apron",
       },
       {
-        resignationId: newResignation.id,
-        namaItem: "Serah Terima Tugas",
+        resignation_id: newResignation.id,
+        nama_item: "Serah Terima Tugas",
         deskripsi: "Koordinasi dengan Tim",
       },
     ];
 
-    await db.insert(clearanceItems).values(defaultClearanceItems);
+    await supabase.from("clearance_items").insert(defaultClearanceItems);
 
     // Log activity
-    await db.insert(activityLogs).values({
-      employeeId: parsed.data.employeeId,
-      tipeAktivitas: "OFFBOARDING",
-      deskripsi: `${emp.namaLengkap} Resign (${parsed.data.tipe})`,
+    await supabase.from("activity_logs").insert({
+      employee_id: parsed.data.employeeId,
+      tipe_aktivitas: "OFFBOARDING",
+      deskripsi: `${emp.nama_lengkap} Resign (${parsed.data.tipe})`,
       detail: `Tanggal: ${parsed.data.tanggalResign}`,
     });
 

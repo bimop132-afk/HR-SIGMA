@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/db";
-import { penalties, employees, activityLogs } from "@/db/schema";
-import { eq, desc, sql, and, gte, lte } from "drizzle-orm";
+import { supabaseAdmin as supabase } from "@/lib/supabase";
 import { createPenaltySchema } from "@/lib/validators";
 
 // GET /api/penalties — List penalties
@@ -11,36 +9,36 @@ export async function GET(request: NextRequest) {
     const bulan = searchParams.get("bulan"); // format: YYYY-MM
     const status = searchParams.get("status");
 
-    const conditions = [];
-    if (status) conditions.push(eq(penalties.status, status));
+    let query = supabase
+      .from("penalties")
+      .select("*, employees(nama_lengkap, nip)")
+      .order("created_at", { ascending: false });
+
+    if (status) query = query.eq("status", status);
     if (bulan) {
       const [year, month] = bulan.split("-").map(Number);
       const startDate = `${year}-${String(month).padStart(2, "0")}-01`;
       const endDate = `${year}-${String(month).padStart(2, "0")}-31`;
-      conditions.push(gte(penalties.tanggalDenda, startDate));
-      conditions.push(lte(penalties.tanggalDenda, endDate));
+      query = query.gte("tanggal_denda", startDate).lte("tanggal_denda", endDate);
     }
 
-    const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+    const { data, error } = await query;
 
-    const data = await db
-      .select({
-        id: penalties.id,
-        employeeId: penalties.employeeId,
-        name: employees.namaLengkap,
-        nip: employees.nip,
-        alasan: penalties.alasan,
-        jumlah: penalties.jumlah,
-        status: penalties.status,
-        tanggalDenda: penalties.tanggalDenda,
-        createdAt: penalties.createdAt,
-      })
-      .from(penalties)
-      .innerJoin(employees, eq(penalties.employeeId, employees.id))
-      .where(whereClause)
-      .orderBy(desc(penalties.createdAt));
+    if (error) throw error;
 
-    return NextResponse.json({ success: true, data });
+    const formattedData = data.map((p: any) => ({
+      id: p.id,
+      employeeId: p.employee_id,
+      name: p.employees?.nama_lengkap,
+      nip: p.employees?.nip,
+      alasan: p.alasan,
+      jumlah: p.jumlah,
+      status: p.status,
+      tanggalDenda: p.tanggal_denda,
+      createdAt: p.created_at,
+    }));
+
+    return NextResponse.json({ success: true, data: formattedData });
   } catch (error) {
     console.error("GET /api/penalties error:", error);
     return NextResponse.json(
@@ -63,22 +61,31 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const [newPenalty] = await db
-      .insert(penalties)
-      .values(parsed.data)
-      .returning();
+    const { data: newPenalty, error: peError } = await supabase
+      .from("penalties")
+      .insert({
+        employee_id: parsed.data.employeeId,
+        alasan: parsed.data.alasan,
+        jumlah: parsed.data.jumlah,
+        tanggal_denda: parsed.data.tanggalDenda,
+      })
+      .select()
+      .single();
+
+    if (peError) throw peError;
 
     // Get employee name for activity log
-    const [emp] = await db
-      .select({ namaLengkap: employees.namaLengkap })
-      .from(employees)
-      .where(eq(employees.id, parsed.data.employeeId));
+    const { data: emp, error: emError } = await supabase
+      .from("employees")
+      .select("nama_lengkap")
+      .eq("id", parsed.data.employeeId)
+      .single();
 
     // Log activity
-    await db.insert(activityLogs).values({
-      employeeId: parsed.data.employeeId,
-      tipeAktivitas: "PENALTY",
-      deskripsi: `Pinalti Diterbitkan — ${emp?.namaLengkap || "Unknown"}`,
+    await supabase.from("activity_logs").insert({
+      employee_id: parsed.data.employeeId,
+      tipe_aktivitas: "PENALTY",
+      deskripsi: `Pinalti Diterbitkan — ${emp?.nama_lengkap || "Unknown"}`,
       detail: `${parsed.data.alasan} • Rp ${parsed.data.jumlah.toLocaleString("id-ID")}`,
     });
 

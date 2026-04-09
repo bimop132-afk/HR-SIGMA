@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/db";
-import { employees, contracts, activityLogs } from "@/db/schema";
-import { eq, and, like, ilike, sql, desc } from "drizzle-orm";
+import { supabaseAdmin as supabase } from "@/lib/supabase";
 import { createEmployeeSchema } from "@/lib/validators";
 import { generateNIP } from "@/lib/nip-generator";
 
@@ -18,39 +16,29 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get("limit") || "20");
     const offset = (page - 1) * limit;
 
-    const conditions = [];
+    let query = supabase
+      .from("employees")
+      .select("*", { count: "exact" })
+      .order("created_at", { ascending: false })
+      .range(offset, offset + limit - 1);
 
-    if (sektor) conditions.push(eq(employees.sektor, parseInt(sektor)));
-    if (posisi) conditions.push(eq(employees.posisi, posisi));
-    if (regu) conditions.push(eq(employees.regu, parseInt(regu)));
-    if (status) conditions.push(eq(employees.status, status));
+    if (sektor) query = query.eq("sektor", parseInt(sektor));
+    if (posisi) query = query.eq("posisi", posisi);
+    if (regu) query = query.eq("regu", parseInt(regu));
+    if (status) query = query.eq("status", status);
     if (search) {
-      conditions.push(
-        sql`(${ilike(employees.namaLengkap, `%${search}%`)} OR ${ilike(employees.nip, `%${search}%`)})`
-      );
+      query = query.or(`nama_lengkap.ilike.%${search}%,nip.ilike.%${search}%`);
     }
 
-    const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+    const { data, error, count } = await query;
 
-    const [data, countResult] = await Promise.all([
-      db
-        .select()
-        .from(employees)
-        .where(whereClause)
-        .orderBy(desc(employees.createdAt))
-        .limit(limit)
-        .offset(offset),
-      db
-        .select({ count: sql<number>`count(*)::int` })
-        .from(employees)
-        .where(whereClause),
-    ]);
+    if (error) throw error;
 
     return NextResponse.json({
       success: true,
       data,
       meta: {
-        total: countResult[0].count,
+        total: count,
         page,
         limit,
       },
@@ -84,35 +72,45 @@ export async function POST(request: NextRequest) {
     const finalNip = manualNip ? manualNip : await generateNIP(tanggalMasukDate, jalurMasuk);
 
     // Insert employee
-    const [newEmployee] = await db
-      .insert(employees)
-      .values({
+    const { data: newEmployee, error: emError } = await supabase
+      .from("employees")
+      .insert({
         nip: finalNip,
-        jalurMasuk,
-        tanggalMasuk,
-        nomorBpjs: rest.nomorBpjs,
-        ...rest,
+        jalur_masuk: jalurMasuk,
+        tanggal_masuk: tanggalMasuk,
+        nomor_bpjs: rest.nomorBpjs,
+        nik: rest.nik,
+        nama_lengkap: rest.namaLengkap,
+        posisi: rest.posisi,
+        sektor: rest.sektor,
+        regu: rest.regu,
+        foto_url: rest.fotoUrl,
       })
-      .returning();
+      .select()
+      .single();
+
+    if (emError) throw emError;
 
     // Create first contract (PKWT_1, 1 year duration)
-    // For old employees, we assume they start with PKWT_1 as default unless they provide overrides,
-    // but the schema enforces creating one for onboarding.
     const kontrakSelesai = new Date(tanggalMasukDate);
     kontrakSelesai.setFullYear(kontrakSelesai.getFullYear() + 1);
 
-    await db.insert(contracts).values({
-      employeeId: newEmployee.id,
-      tipeKontrak: "PKWT_1",
-      tanggalMulai: tanggalMasuk,
-      tanggalSelesai: kontrakSelesai.toISOString().split("T")[0],
-    });
+    const { error: coError } = await supabase
+      .from("contracts")
+      .insert({
+        employee_id: newEmployee.id,
+        tipe_kontrak: "PKWT_1",
+        tanggal_mulai: tanggalMasuk,
+        tanggal_selesai: kontrakSelesai.toISOString().split("T")[0],
+      });
+
+    if (coError) throw coError;
 
     // Log activity
-    await db.insert(activityLogs).values({
-      employeeId: newEmployee.id,
-      tipeAktivitas: "ONBOARDING",
-      deskripsi: `${newEmployee.namaLengkap} Onboarded`,
+    await supabase.from("activity_logs").insert({
+      employee_id: newEmployee.id,
+      tipe_aktivitas: "ONBOARDING",
+      deskripsi: `${newEmployee.nama_lengkap} Onboarded`,
       detail: `Sektor ${newEmployee.sektor} • ${jalurMasuk}`,
     });
 

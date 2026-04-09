@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/db";
-import { contracts, employees } from "@/db/schema";
-import { eq, desc, sql, and } from "drizzle-orm";
+import { supabaseAdmin as supabase } from "@/lib/supabase";
 import { createContractSchema } from "@/lib/validators";
 
 // GET /api/contracts — List contracts with computed fields
@@ -11,34 +9,24 @@ export async function GET(request: NextRequest) {
     const severity = searchParams.get("severity");
     const employeeId = searchParams.get("employeeId");
 
-    const conditions = [eq(contracts.status, "AKTIF")];
+    let query = supabase
+      .from("contracts")
+      .select("*, employees(nama_lengkap, nip, posisi, sektor, foto_url)")
+      .eq("status", "AKTIF")
+      .order("tanggal_selesai", { ascending: true });
+
     if (employeeId) {
-      conditions.push(eq(contracts.employeeId, parseInt(employeeId)));
+      query = query.eq("employee_id", parseInt(employeeId));
     }
 
-    const data = await db
-      .select({
-        id: contracts.id,
-        employeeId: contracts.employeeId,
-        employeeName: employees.namaLengkap,
-        employeeNip: employees.nip,
-        position: employees.posisi,
-        sektor: employees.sektor,
-        tipeKontrak: contracts.tipeKontrak,
-        tanggalMulai: contracts.tanggalMulai,
-        tanggalSelesai: contracts.tanggalSelesai,
-        status: contracts.status,
-        fotoUrl: employees.fotoUrl,
-      })
-      .from(contracts)
-      .innerJoin(employees, eq(contracts.employeeId, employees.id))
-      .where(and(...conditions))
-      .orderBy(contracts.tanggalSelesai);
+    const { data, error } = await query;
+
+    if (error) throw error;
 
     // Compute daysLeft and severity
     const now = new Date();
-    const enriched = data.map((c) => {
-      const endDate = new Date(c.tanggalSelesai);
+    const enriched = (data || []).map((c: any) => {
+      const endDate = new Date(c.tanggal_selesai);
       const diffTime = endDate.getTime() - now.getTime();
       const daysLeft = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
@@ -48,11 +36,21 @@ export async function GET(request: NextRequest) {
       else contractSeverity = "safe";
 
       return {
-        ...c,
+        id: c.id,
+        employeeId: c.employee_id,
+        employeeName: c.employees?.nama_lengkap,
+        employeeNip: c.employees?.nip,
+        position: c.employees?.posisi,
+        sektor: c.employees?.sektor,
+        tipeKontrak: c.tipe_kontrak,
+        tanggalMulai: c.tanggal_mulai,
+        tanggalSelesai: c.tanggal_selesai,
+        status: c.status,
+        fotoUrl: c.employees?.foto_url,
         daysLeft,
         severity: contractSeverity,
-        department: `Sektor ${c.sektor}`,
-        avatar: c.fotoUrl || "",
+        department: `Sektor ${c.employees?.sektor}`,
+        avatar: c.employees?.foto_url || "",
       };
     });
 
@@ -84,10 +82,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const [newContract] = await db
-      .insert(contracts)
-      .values(parsed.data)
-      .returning();
+    const { data: newContract, error } = await supabase
+      .from("contracts")
+      .insert({
+        employee_id: parsed.data.employeeId,
+        tipe_kontrak: parsed.data.tipeKontrak,
+        tanggal_mulai: parsed.data.tanggalMulai,
+        tanggal_selesai: parsed.data.tanggalSelesai,
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
 
     return NextResponse.json(
       { success: true, data: newContract },

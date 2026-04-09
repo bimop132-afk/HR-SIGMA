@@ -1,26 +1,27 @@
 import { NextResponse } from "next/server";
-import { db } from "@/db";
-import { documents, employees } from "@/db/schema";
-import { eq, desc } from "drizzle-orm";
+import { supabaseAdmin as supabase } from "@/lib/supabase";
 
 export async function GET() {
   try {
-    const data = await db
-      .select({
-        id: documents.id,
-        fileName: documents.fileName,
-        type: documents.tipe,
-        size: documents.fileSize,
-        uploadDate: documents.uploadDate,
-        filePath: documents.filePath,
-        ownerName: employees.namaLengkap,
-        ownerAvatar: employees.fotoUrl,
-      })
-      .from(documents)
-      .leftJoin(employees, eq(documents.employeeId, employees.id))
-      .orderBy(desc(documents.uploadDate));
+    const { data, error } = await supabase
+      .from("documents")
+      .select("*, employees(nama_lengkap, foto_url)")
+      .order("upload_date", { ascending: false });
 
-    return NextResponse.json({ success: true, data });
+    if (error) throw error;
+
+    const formattedData = data.map((d: any) => ({
+      id: d.id,
+      fileName: d.file_name,
+      type: d.tipe,
+      size: d.file_size,
+      uploadDate: d.upload_date,
+      filePath: d.file_path,
+      ownerName: d.employees?.nama_lengkap,
+      ownerAvatar: d.employees?.foto_url,
+    }));
+
+    return NextResponse.json({ success: true, data: formattedData });
   } catch (error) {
     console.error("GET /api/documents error:", error);
     return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });

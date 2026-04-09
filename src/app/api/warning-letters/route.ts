@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/db";
-import { warningLetters, employees, activityLogs } from "@/db/schema";
-import { eq, desc } from "drizzle-orm";
+import { supabaseAdmin as supabase } from "@/lib/supabase";
 import { createWarningLetterSchema } from "@/lib/validators";
 
 // GET /api/warning-letters — List SPs for an employee
@@ -17,11 +15,13 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const data = await db
-      .select()
-      .from(warningLetters)
-      .where(eq(warningLetters.employeeId, parseInt(employeeId)))
-      .orderBy(desc(warningLetters.tanggalTerbit));
+    const { data, error } = await supabase
+      .from("warning_letters")
+      .select("*")
+      .eq("employee_id", parseInt(employeeId))
+      .order("tanggal_terbit", { ascending: false });
+
+    if (error) throw error;
 
     return NextResponse.json({ success: true, data });
   } catch (error) {
@@ -46,25 +46,34 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const [newSp] = await db
-      .insert(warningLetters)
-      .values({
-        ...parsed.data,
+    const { data: newSp, error: spError } = await supabase
+      .from("warning_letters")
+      .insert({
+        employee_id: parsed.data.employeeId,
+        tipe: parsed.data.tipe,
+        alasan: parsed.data.alasan,
+        tanggal_terbit: parsed.data.tanggalTerbit,
+        tanggal_berakhir: parsed.data.tanggalBerakhir,
+        keterangan: parsed.data.keterangan,
       })
-      .returning();
+      .select()
+      .single();
+
+    if (spError) throw spError;
 
     // Get employee name for activity log
-    const [emp] = await db
-      .select({ namaLengkap: employees.namaLengkap })
-      .from(employees)
-      .where(eq(employees.id, parsed.data.employeeId));
+    const { data: emp, error: emError } = await supabase
+      .from("employees")
+      .select("nama_lengkap")
+      .eq("id", parsed.data.employeeId)
+      .single();
 
     // Log activity
-    await db.insert(activityLogs).values({
-      employeeId: parsed.data.employeeId,
-      tipeAktivitas: "WARNING_LETTER",
+    await supabase.from("activity_logs").insert({
+      employee_id: parsed.data.employeeId,
+      tipe_aktivitas: "WARNING_LETTER",
       deskripsi: `Surat Peringatan (${parsed.data.tipe.replace("_", " ")}) Diterbitkan`,
-      detail: `${emp?.namaLengkap || "Unknown"} — ${parsed.data.alasan}`,
+      detail: `${emp?.nama_lengkap || "Unknown"} — ${parsed.data.alasan}`,
     });
 
     return NextResponse.json(

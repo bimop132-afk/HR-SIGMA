@@ -3,9 +3,7 @@ import EmployeeSearch from "@/components/EmployeeSearch";
 import EmployeeFilters from "@/components/EmployeeFilters";
 import EmployeeCard from "@/components/EmployeeCard";
 import FloatingActionButton from "@/components/FloatingActionButton";
-import { db } from "@/db";
-import { employees } from "@/db/schema";
-import { desc, ilike, eq, and } from "drizzle-orm";
+import { supabaseAdmin as supabase } from "@/lib/supabase";
 
 function getInitials(name: string) {
   if (!name) return "??";
@@ -14,30 +12,33 @@ function getInitials(name: string) {
 
 export const dynamic = "force-dynamic";
 
-export default async function KaryawanPage({ searchParams }: { searchParams: { search?: string, status?: string } }) {
-  const search = searchParams.search || "";
-  const statusFilter = searchParams.status || "";
+export default async function KaryawanPage({ searchParams }: { searchParams: Promise<{ search?: string, status?: string }> }) {
+  const params = await searchParams;
+  const search = params.search || "";
+  const statusFilter = params.status || "";
 
-  let conditions = [];
+  let query = supabase
+    .from("employees")
+    .select()
+    .order("created_at", { ascending: false });
+
   if (search) {
-    conditions.push(ilike(employees.namaLengkap, `%${search}%`));
+    query = query.or(`nama_lengkap.ilike.%${search}%,nip.ilike.%${search}%`);
   }
   if (statusFilter) {
-    conditions.push(eq(employees.status, statusFilter));
+    query = query.eq("status", statusFilter);
   }
 
-  const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+  const { data, error } = await query;
 
-  const data = await db
-    .select()
-    .from(employees)
-    .where(whereClause)
-    .orderBy(desc(employees.createdAt));
+  if (error) {
+    console.error("KaryawanPage error:", error);
+  }
 
-  const formattedEmployees = data.map(e => ({
+  const formattedEmployees = (data || []).map(e => ({
     id: e.id,
-    initials: getInitials(e.namaLengkap),
-    name: e.namaLengkap,
+    initials: getInitials(e.nama_lengkap),
+    name: e.nama_lengkap,
     nip: e.nip,
     posisi: e.posisi,
     sektor: `Sektor ${e.sektor}`,

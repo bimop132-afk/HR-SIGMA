@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/db";
-import { employees } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { supabaseAdmin as supabase } from "@/lib/supabase";
 import { updateEmployeeSchema } from "@/lib/validators";
 
 type Params = { params: Promise<{ id: string }> };
@@ -10,20 +8,20 @@ type Params = { params: Promise<{ id: string }> };
 export async function GET(_request: NextRequest, { params }: Params) {
   try {
     const { id } = await params;
-    const employee = await db
-      .select()
-      .from(employees)
-      .where(eq(employees.id, parseInt(id)))
-      .limit(1);
+    const { data: employee, error } = await supabase
+      .from("employees")
+      .select("*")
+      .eq("id", parseInt(id))
+      .single();
 
-    if (employee.length === 0) {
+    if (error || !employee) {
       return NextResponse.json(
         { success: false, error: "Karyawan tidak ditemukan" },
         { status: 404 }
       );
     }
 
-    return NextResponse.json({ success: true, data: employee[0] });
+    return NextResponse.json({ success: true, data: employee });
   } catch (error) {
     console.error("GET /api/employees/:id error:", error);
     return NextResponse.json(
@@ -47,13 +45,29 @@ export async function PUT(request: NextRequest, { params }: Params) {
       );
     }
 
-    const [updated] = await db
-      .update(employees)
-      .set({ ...parsed.data, updatedAt: new Date() })
-      .where(eq(employees.id, parseInt(id)))
-      .returning();
+    // Map camelCase to snake_case
+    const updateData: any = {};
+    if (parsed.data.namaLengkap) updateData.nama_lengkap = parsed.data.namaLengkap;
+    if (parsed.data.nik) updateData.nik = parsed.data.nik;
+    if (parsed.data.nip) updateData.nip = parsed.data.nip;
+    if (parsed.data.jalurMasuk) updateData.jalur_masuk = parsed.data.jalurMasuk;
+    if (parsed.data.posisi) updateData.posisi = parsed.data.posisi;
+    if (parsed.data.sektor) updateData.sektor = parsed.data.sektor;
+    if (parsed.data.regu) updateData.regu = parsed.data.regu;
+    if (parsed.data.status) updateData.status = parsed.data.status;
+    if (parsed.data.tanggalMasuk) updateData.tanggal_masuk = parsed.data.tanggalMasuk;
+    if (parsed.data.tanggalKeluar) updateData.tanggal_keluar = parsed.data.tanggalKeluar;
+    if (parsed.data.nomorBpjs) updateData.nomor_bpjs = parsed.data.nomorBpjs;
+    if (parsed.data.fotoUrl) updateData.foto_url = parsed.data.fotoUrl;
 
-    if (!updated) {
+    const { data: updated, error } = await supabase
+      .from("employees")
+      .update(updateData)
+      .eq("id", parseInt(id))
+      .select()
+      .single();
+
+    if (error || !updated) {
       return NextResponse.json(
         { success: false, error: "Karyawan tidak ditemukan" },
         { status: 404 }
@@ -74,13 +88,14 @@ export async function PUT(request: NextRequest, { params }: Params) {
 export async function DELETE(_request: NextRequest, { params }: Params) {
   try {
     const { id } = await params;
-    const [updated] = await db
-      .update(employees)
-      .set({ status: "NON_AKTIF", updatedAt: new Date() })
-      .where(eq(employees.id, parseInt(id)))
-      .returning();
+    const { data: updated, error } = await supabase
+      .from("employees")
+      .update({ status: "NON_AKTIF" })
+      .eq("id", parseInt(id))
+      .select()
+      .single();
 
-    if (!updated) {
+    if (error || !updated) {
       return NextResponse.json(
         { success: false, error: "Karyawan tidak ditemukan" },
         { status: 404 }

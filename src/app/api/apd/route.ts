@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/db";
-import { apdItems, employees, activityLogs } from "@/db/schema";
-import { eq, desc, and } from "drizzle-orm";
-import { createApdSchema, updateApdSchema } from "@/lib/validators";
+import { supabaseAdmin as supabase } from "@/lib/supabase";
+import { createApdSchema } from "@/lib/validators";
 
 // GET /api/apd — List APD items
 export async function GET(request: NextRequest) {
@@ -12,33 +10,34 @@ export async function GET(request: NextRequest) {
     const status = searchParams.get("status");
     const jenis = searchParams.get("jenis");
 
-    const conditions = [];
-    if (employeeId) conditions.push(eq(apdItems.employeeId, parseInt(employeeId)));
-    if (status) conditions.push(eq(apdItems.status, status));
-    if (jenis) conditions.push(eq(apdItems.jenisApd, jenis));
+    let query = supabase
+      .from("apd_items")
+      .select("*, employees(nama_lengkap, nip)")
+      .order("created_at", { ascending: false });
 
-    const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+    if (employeeId) query = query.eq("employee_id", parseInt(employeeId));
+    if (status) query = query.eq("status", status);
+    if (jenis) query = query.eq("jenis_apd", jenis);
 
-    const data = await db
-      .select({
-        id: apdItems.id,
-        employeeId: apdItems.employeeId,
-        name: employees.namaLengkap,
-        nip: employees.nip,
-        jenisApd: apdItems.jenisApd,
-        status: apdItems.status,
-        depositAmount: apdItems.depositAmount,
-        tanggalPinjam: apdItems.tanggalPinjam,
-        tanggalKembali: apdItems.tanggalKembali,
-        catatan: apdItems.catatan,
-        createdAt: apdItems.createdAt,
-      })
-      .from(apdItems)
-      .innerJoin(employees, eq(apdItems.employeeId, employees.id))
-      .where(whereClause)
-      .orderBy(desc(apdItems.createdAt));
+    const { data, error } = await query;
 
-    return NextResponse.json({ success: true, data });
+    if (error) throw error;
+
+    const formattedData = (data || []).map((a: any) => ({
+      id: a.id,
+      employeeId: a.employee_id,
+      name: a.employees?.nama_lengkap,
+      nip: a.employees?.nip,
+      jenisApd: a.jenis_apd,
+      status: a.status,
+      depositAmount: a.deposit_amount,
+      tanggalPinjam: a.tanggal_pinjam,
+      tanggalKembali: a.tanggal_kembali,
+      catatan: a.catatan,
+      createdAt: a.created_at,
+    }));
+
+    return NextResponse.json({ success: true, data: formattedData });
   } catch (error) {
     console.error("GET /api/apd error:", error);
     return NextResponse.json(
@@ -61,10 +60,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const [newApd] = await db
-      .insert(apdItems)
-      .values(parsed.data)
-      .returning();
+    const { data: newApd, error } = await supabase
+      .from("apd_items")
+      .insert({
+        employee_id: parsed.data.employeeId,
+        jenis_apd: parsed.data.jenisApd,
+        deposit_amount: parsed.data.depositAmount,
+        tanggal_pinjam: parsed.data.tanggalPinjam,
+        catatan: parsed.data.catatan,
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
 
     return NextResponse.json(
       { success: true, data: newApd },

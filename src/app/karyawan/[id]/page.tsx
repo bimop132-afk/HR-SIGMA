@@ -1,6 +1,4 @@
-import { db } from "@/db";
-import { employees, contracts, penalties, documents, activityLogs, warningLetters } from "@/db/schema";
-import { eq, desc } from "drizzle-orm";
+import { supabaseAdmin as supabase } from "@/lib/supabase";
 import { notFound } from "next/navigation";
 import AppLayout from "@/components/AppLayout";
 import WarningLetterModal from "@/components/WarningLetterModal";
@@ -20,39 +18,27 @@ export default async function EmployeeProfilePage({ params }: { params: Promise<
   const employeeId = parseInt(id);
   if (isNaN(employeeId)) notFound();
 
-  const employee = await db.query.employees.findFirst({
-    where: eq(employees.id, employeeId),
-    with: {
-      contracts: {
-        orderBy: [desc(contracts.tanggalMulai)],
-      },
-      penalties: {
-        orderBy: [desc(penalties.tanggalDenda)],
-      },
-      documents: {
-        orderBy: [desc(documents.uploadDate)],
-      },
-      warningLetters: {
-        orderBy: [desc(warningLetters.tanggalTerbit)],
-      },
-      activityLogs: {
-        orderBy: [desc(activityLogs.createdAt)],
-        limit: 10,
-      },
-    },
-  });
+  // Fetch employee and related data in parallel for better performance and control
+  const [
+    { data: employee, error: emError },
+    { data: contractsList, error: coError },
+    { data: penaltiesList, error: peError },
+    { data: documentsList, error: doError },
+    { data: spList, error: spError }
+  ] = await Promise.all([
+    supabase.from("employees").select("*").eq("id", employeeId).single(),
+    supabase.from("contracts").select("*").eq("employee_id", employeeId).order("tanggal_mulai", { ascending: false }),
+    supabase.from("penalties").select("*").eq("employee_id", employeeId).order("tanggal_denda", { ascending: false }),
+    supabase.from("documents").select("*").eq("employee_id", employeeId).order("upload_date", { ascending: false }),
+    supabase.from("warning_letters").select("*").eq("employee_id", employeeId).order("tanggal_terbit", { ascending: false })
+  ]);
 
-  if (!employee) notFound();
+  if (emError || !employee) notFound();
 
-  const initials = getInitials(employee.namaLengkap);
+  const initials = getInitials(employee.nama_lengkap);
   const statusColor = employee.status === "AKTIF" ? "text-tertiary bg-tertiary-container/20" : "text-outline bg-surface-variant";
 
-  const spList = employee.warningLetters || [];
-  const penaltiesList = employee.penalties || [];
-  const contractsList = employee.contracts || [];
-  const documentsList = employee.documents || [];
-
-  const totalPenalties = penaltiesList.reduce((acc, curr) => acc + (curr.status === "BELUM_BAYAR" ? curr.jumlah : 0), 0);
+  const totalPenalties = (penaltiesList || []).reduce((acc, curr) => acc + (curr.status === "BELUM_BAYAR" ? curr.jumlah : 0), 0);
   const formattedTotalPenalties = new Intl.NumberFormat("id-ID", {
     style: "currency",
     currency: "IDR",
@@ -84,7 +70,7 @@ export default async function EmployeeProfilePage({ params }: { params: Promise<
                 <div>
                   <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 mb-2">
                     <h2 className="font-headline font-extrabold text-3xl md:text-4xl text-on-surface tracking-tight">
-                      {employee.namaLengkap}
+                      {employee.nama_lengkap}
                     </h2>
                     <span className={`px-4 py-1 rounded-full text-xs font-black uppercase tracking-widest ${statusColor}`}>
                       {employee.status}
@@ -109,7 +95,7 @@ export default async function EmployeeProfilePage({ params }: { params: Promise<
                   </div>
                   <div className="bg-white/5 rounded-2xl p-4 border border-white/5">
                     <p className="text-[10px] text-outline uppercase tracking-widest mb-1">Jalur Masuk</p>
-                    <p className="font-bold text-primary">{employee.jalurMasuk}</p>
+                    <p className="font-bold text-primary">{employee.jalur_masuk}</p>
                   </div>
                 </div>
               </div>
@@ -129,19 +115,19 @@ export default async function EmployeeProfilePage({ params }: { params: Promise<
                   </div>
                   <div className="flex justify-between items-center py-2 border-b border-white/5">
                     <span className="text-sm text-on-surface-variant font-medium">Nomor BPJS</span>
-                    <span className="text-sm font-bold text-primary">{employee.nomorBpjs || "-"}</span>
+                    <span className="text-sm font-bold text-primary">{employee.nomor_bpjs || "-"}</span>
                   </div>
                   <div className="flex justify-between items-center py-2 border-b border-white/5">
                     <span className="text-sm text-on-surface-variant font-medium">Tanggal Masuk</span>
                     <span className="text-sm font-bold text-on-surface">
-                      {format(new Date(employee.tanggalMasuk), "dd MMMM yyyy", { locale: localeId })}
+                      {format(new Date(employee.tanggal_masuk), "dd MMMM yyyy", { locale: localeId })}
                     </span>
                   </div>
-                  {employee.tanggalKeluar && (
+                  {employee.tanggal_keluar && (
                     <div className="flex justify-between items-center py-2 border-b border-white/5">
                       <span className="text-sm text-on-surface-variant font-medium">Tanggal Keluar</span>
                       <span className="text-sm font-bold text-error">
-                        {format(new Date(employee.tanggalKeluar), "dd MMMM yyyy", { locale: localeId })}
+                        {format(new Date(employee.tanggal_keluar), "dd MMMM yyyy", { locale: localeId })}
                       </span>
                     </div>
                   )}
@@ -165,7 +151,7 @@ export default async function EmployeeProfilePage({ params }: { params: Promise<
                       <span className="material-symbols-outlined font-bold">gavel</span>
                     </div>
                     <div>
-                      <p className="text-2xl font-black text-error">{spList.length}</p>
+                      <p className="text-2xl font-black text-error">{(spList || []).length}</p>
                       <p className="text-xs text-on-surface-variant font-medium">Total Surat Peringatan</p>
                     </div>
                   </div>
@@ -182,15 +168,15 @@ export default async function EmployeeProfilePage({ params }: { params: Promise<
                     <span className="material-symbols-outlined text-primary">description</span>
                     Riwayat Kontrak
                   </h3>
-                  <span className="text-xs font-black bg-white/5 px-2 py-1 rounded text-outline">{contractsList.length} PKWT</span>
+                  <span className="text-xs font-black bg-white/5 px-2 py-1 rounded text-outline">{(contractsList || []).length} PKWT</span>
                 </div>
                 <div className="space-y-4">
-                  {contractsList.map((contract) => (
+                  {(contractsList || []).map((contract) => (
                     <div key={contract.id} className="p-4 rounded-2xl bg-white/5 border border-white/5 flex justify-between items-center">
                       <div>
-                        <p className="font-bold text-on-surface">{contract.tipeKontrak.replace("_", " ")}</p>
+                        <p className="font-bold text-on-surface">{contract.tipe_kontrak?.replace("_", " ")}</p>
                         <p className="text-xs text-on-surface-variant">
-                          {format(new Date(contract.tanggalMulai), "dd/MM/yy")} - {format(new Date(contract.tanggalSelesai), "dd/MM/yy")}
+                          {format(new Date(contract.tanggal_mulai), "dd/MM/yy")} - {format(new Date(contract.tanggal_selesai), "dd/MM/yy")}
                         </p>
                       </div>
                       <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase ${
@@ -200,7 +186,7 @@ export default async function EmployeeProfilePage({ params }: { params: Promise<
                       </span>
                     </div>
                   ))}
-                  {contractsList.length === 0 && (
+                  {(!contractsList || contractsList.length === 0) && (
                     <p className="text-center py-4 text-sm text-on-surface-variant">Belum ada data kontrak.</p>
                   )}
                 </div>
@@ -215,21 +201,21 @@ export default async function EmployeeProfilePage({ params }: { params: Promise<
                   </h3>
                 </div>
                 <div className="space-y-4">
-                  {spList.map((sp) => {
+                  {(spList || []).map((sp) => {
                     let isExpired = false;
                     try {
-                      isExpired = new Date(sp.tanggalBerakhir) < new Date();
+                      isExpired = new Date(sp.tanggal_berakhir) < new Date();
                     } catch (e) {}
                     return (
                       <div key={sp.id} className="p-4 rounded-2xl bg-white/5 border border-white/5 flex justify-between items-start">
                         <div className="flex gap-4">
                           <div className="w-10 h-10 rounded-xl bg-error/20 flex items-center justify-center text-error flex-shrink-0">
-                            <span className="font-black text-xs">{sp.tipe.replace("_", " ")}</span>
+                            <span className="font-black text-xs">{sp.tipe?.replace("_", " ")}</span>
                           </div>
                           <div>
                             <p className="font-bold text-on-surface">{sp.alasan}</p>
                             <p className="text-xs text-on-surface-variant">
-                              {format(new Date(sp.tanggalTerbit), "dd/MM/yy")} — {format(new Date(sp.tanggalBerakhir), "dd/MM/yy")}
+                              {format(new Date(sp.tanggal_terbit), "dd/MM/yy")} — {format(new Date(sp.tanggal_berakhir), "dd/MM/yy")}
                             </p>
                             {sp.keterangan && <p className="text-[10px] text-outline mt-1 italic">"{sp.keterangan}"</p>}
                           </div>
@@ -242,13 +228,13 @@ export default async function EmployeeProfilePage({ params }: { params: Promise<
                       </div>
                     );
                   })}
-                  {spList.length === 0 && (
+                  {(!spList || spList.length === 0) && (
                     <p className="text-center py-4 text-sm text-on-surface-variant">Karyawan ini tidak memiliki riwayat SP.</p>
                   )}
                 </div>
               </div>
 
-              {/* Fines & Penalties */}
+              {/* Catatan Kedisiplinan */}
               <div className="glass-card rounded-3xl p-6 border border-white/5">
                 <div className="flex justify-between items-center mb-6">
                   <h3 className="font-headline font-bold text-lg text-on-surface flex items-center gap-2">
@@ -258,23 +244,23 @@ export default async function EmployeeProfilePage({ params }: { params: Promise<
                   <Link href="/denda" className="text-xs font-bold text-primary hover:underline">Lihat Semua</Link>
                 </div>
                 <div className="space-y-4">
-                  {penaltiesList.slice(0, 3).map((penalty) => (
+                  {(penaltiesList || []).slice(0, 3).map((penalty) => (
                     <div key={penalty.id} className="p-4 rounded-2xl bg-white/5 border border-white/5 flex justify-between items-center">
                       <div>
                         <p className="font-bold text-on-surface">{penalty.alasan}</p>
                         <p className="text-[10px] text-on-surface-variant">
-                          {format(new Date(penalty.tanggalDenda), "dd MMM yyyy", { locale: localeId })}
+                          {format(new Date(penalty.tanggal_denda), "dd MMM yyyy", { locale: localeId })}
                         </p>
                       </div>
                       <div className="text-right">
                         <p className={`font-bold ${penalty.status === "LUNAS" ? "text-tertiary" : "text-error"}`}>
                           Rp {penalty.jumlah.toLocaleString("id-ID")}
                         </p>
-                        <span className="text-[10px] font-black uppercase tracking-tighter text-outline">{penalty.status.replace("_", " ")}</span>
+                        <span className="text-[10px] font-black uppercase tracking-tighter text-outline">{penalty.status?.replace("_", " ")}</span>
                       </div>
                     </div>
                   ))}
-                  {penaltiesList.length === 0 && (
+                  {(!penaltiesList || penaltiesList.length === 0) && (
                     <p className="text-center py-4 text-sm text-on-surface-variant">Tidak ada catatan denda.</p>
                   )}
                 </div>
@@ -290,18 +276,18 @@ export default async function EmployeeProfilePage({ params }: { params: Promise<
                   <Link href="/dokumen" className="text-xs font-bold text-primary hover:underline">Kelola Berkas</Link>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {documentsList.map((doc) => (
+                  {(documentsList || []).map((doc) => (
                     <div key={doc.id} className="p-3 rounded-2xl bg-white/5 border border-white/5 flex items-center gap-3">
                       <div className="w-10 h-10 rounded-xl bg-secondary/10 flex items-center justify-center text-secondary">
                         <span className="material-symbols-outlined text-base">description</span>
                       </div>
                       <div className="min-w-0 flex-1">
-                        <p className="text-sm font-bold text-on-surface truncate">{doc.fileName}</p>
+                        <p className="text-sm font-bold text-on-surface truncate">{doc.file_name}</p>
                         <p className="text-[10px] text-on-surface-variant uppercase font-black">{doc.tipe}</p>
                       </div>
                     </div>
                   ))}
-                  {documentsList.length === 0 && (
+                  {(!documentsList || documentsList.length === 0) && (
                     <p className="col-span-2 text-center py-4 text-sm text-on-surface-variant">Belum ada dokumen diunggah.</p>
                   )}
                 </div>

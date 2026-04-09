@@ -26,7 +26,12 @@ export const createEmployeeSchema = z.object({
   nip: z.string().optional(), // Allowed for old employees manual input
 });
 
-export const updateEmployeeSchema = createEmployeeSchema.partial();
+export const updateEmployeeSchema = createEmployeeSchema.extend({
+  status: z.enum(["AKTIF", "NON_AKTIF"]).optional(),
+  tanggalKeluar: z.string().refine((v) => !v || !isNaN(Date.parse(v)), {
+    message: "Tanggal keluar tidak valid",
+  }).optional().nullable(),
+}).partial();
 
 export const createContractSchema = z.object({
   employeeId: z.number().int().positive(),

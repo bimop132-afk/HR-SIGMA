@@ -8,7 +8,8 @@ import { employees } from "@/db/schema";
 import { desc, ilike, eq, and } from "drizzle-orm";
 
 function getInitials(name: string) {
-  return name.split(" ").map(n => n[0]).join("").substring(0, 2).toUpperCase();
+  if (!name) return "??";
+  return name.trim().split(/\s+/).map(n => n[0]).join("").substring(0, 2).toUpperCase();
 }
 
 export const dynamic = "force-dynamic";

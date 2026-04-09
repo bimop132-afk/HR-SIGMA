@@ -11,7 +11,8 @@ import Link from "next/link";
 export const dynamic = "force-dynamic";
 
 function getInitials(name: string) {
-  return name.split(" ").map(n => n[0]).join("").substring(0, 2).toUpperCase();
+  if (!name) return "??";
+  return name.trim().split(/\s+/).map(n => n[0]).join("").substring(0, 2).toUpperCase();
 }
 
 export default async function EmployeeProfilePage({ params }: { params: Promise<{ id: string }> }) {
@@ -46,7 +47,12 @@ export default async function EmployeeProfilePage({ params }: { params: Promise<
   const initials = getInitials(employee.namaLengkap);
   const statusColor = employee.status === "AKTIF" ? "text-tertiary bg-tertiary-container/20" : "text-outline bg-surface-variant";
 
-  const totalPenalties = employee.penalties.reduce((acc, curr) => acc + (curr.status === "BELUM_BAYAR" ? curr.jumlah : 0), 0);
+  const spList = employee.warningLetters || [];
+  const penaltiesList = employee.penalties || [];
+  const contractsList = employee.contracts || [];
+  const documentsList = employee.documents || [];
+
+  const totalPenalties = penaltiesList.reduce((acc, curr) => acc + (curr.status === "BELUM_BAYAR" ? curr.jumlah : 0), 0);
   const formattedTotalPenalties = new Intl.NumberFormat("id-ID", {
     style: "currency",
     currency: "IDR",
@@ -159,7 +165,7 @@ export default async function EmployeeProfilePage({ params }: { params: Promise<
                       <span className="material-symbols-outlined font-bold">gavel</span>
                     </div>
                     <div>
-                      <p className="text-2xl font-black text-error">{employee.warningLetters.length}</p>
+                      <p className="text-2xl font-black text-error">{spList.length}</p>
                       <p className="text-xs text-on-surface-variant font-medium">Total Surat Peringatan</p>
                     </div>
                   </div>
@@ -176,10 +182,10 @@ export default async function EmployeeProfilePage({ params }: { params: Promise<
                     <span className="material-symbols-outlined text-primary">description</span>
                     Riwayat Kontrak
                   </h3>
-                  <span className="text-xs font-black bg-white/5 px-2 py-1 rounded text-outline">{employee.contracts.length} PKWT</span>
+                  <span className="text-xs font-black bg-white/5 px-2 py-1 rounded text-outline">{contractsList.length} PKWT</span>
                 </div>
                 <div className="space-y-4">
-                  {employee.contracts.map((contract) => (
+                  {contractsList.map((contract) => (
                     <div key={contract.id} className="p-4 rounded-2xl bg-white/5 border border-white/5 flex justify-between items-center">
                       <div>
                         <p className="font-bold text-on-surface">{contract.tipeKontrak.replace("_", " ")}</p>
@@ -194,7 +200,7 @@ export default async function EmployeeProfilePage({ params }: { params: Promise<
                       </span>
                     </div>
                   ))}
-                  {employee.contracts.length === 0 && (
+                  {contractsList.length === 0 && (
                     <p className="text-center py-4 text-sm text-on-surface-variant">Belum ada data kontrak.</p>
                   )}
                 </div>
@@ -209,8 +215,11 @@ export default async function EmployeeProfilePage({ params }: { params: Promise<
                   </h3>
                 </div>
                 <div className="space-y-4">
-                  {employee.warningLetters.map((sp) => {
-                    const isExpired = new Date(sp.tanggalBerakhir) < new Date();
+                  {spList.map((sp) => {
+                    let isExpired = false;
+                    try {
+                      isExpired = new Date(sp.tanggalBerakhir) < new Date();
+                    } catch (e) {}
                     return (
                       <div key={sp.id} className="p-4 rounded-2xl bg-white/5 border border-white/5 flex justify-between items-start">
                         <div className="flex gap-4">
@@ -233,7 +242,7 @@ export default async function EmployeeProfilePage({ params }: { params: Promise<
                       </div>
                     );
                   })}
-                  {employee.warningLetters.length === 0 && (
+                  {spList.length === 0 && (
                     <p className="text-center py-4 text-sm text-on-surface-variant">Karyawan ini tidak memiliki riwayat SP.</p>
                   )}
                 </div>
@@ -249,7 +258,7 @@ export default async function EmployeeProfilePage({ params }: { params: Promise<
                   <Link href="/denda" className="text-xs font-bold text-primary hover:underline">Lihat Semua</Link>
                 </div>
                 <div className="space-y-4">
-                  {employee.penalties.slice(0, 3).map((penalty) => (
+                  {penaltiesList.slice(0, 3).map((penalty) => (
                     <div key={penalty.id} className="p-4 rounded-2xl bg-white/5 border border-white/5 flex justify-between items-center">
                       <div>
                         <p className="font-bold text-on-surface">{penalty.alasan}</p>
@@ -265,7 +274,7 @@ export default async function EmployeeProfilePage({ params }: { params: Promise<
                       </div>
                     </div>
                   ))}
-                  {employee.penalties.length === 0 && (
+                  {penaltiesList.length === 0 && (
                     <p className="text-center py-4 text-sm text-on-surface-variant">Tidak ada catatan denda.</p>
                   )}
                 </div>
@@ -281,7 +290,7 @@ export default async function EmployeeProfilePage({ params }: { params: Promise<
                   <Link href="/dokumen" className="text-xs font-bold text-primary hover:underline">Kelola Berkas</Link>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {employee.documents.map((doc) => (
+                  {documentsList.map((doc) => (
                     <div key={doc.id} className="p-3 rounded-2xl bg-white/5 border border-white/5 flex items-center gap-3">
                       <div className="w-10 h-10 rounded-xl bg-secondary/10 flex items-center justify-center text-secondary">
                         <span className="material-symbols-outlined text-base">description</span>
@@ -292,7 +301,7 @@ export default async function EmployeeProfilePage({ params }: { params: Promise<
                       </div>
                     </div>
                   ))}
-                  {employee.documents.length === 0 && (
+                  {documentsList.length === 0 && (
                     <p className="col-span-2 text-center py-4 text-sm text-on-surface-variant">Belum ada dokumen diunggah.</p>
                   )}
                 </div>

@@ -78,3 +78,16 @@ export const updateApdSchema = z.object({
     .nullable(),
   catatan: z.string().optional().nullable(),
 });
+
+export const createWarningLetterSchema = z.object({
+  employeeId: z.number().int().positive(),
+  tipe: z.enum(["SP_1", "SP_2", "SP_3"]),
+  alasan: z.string().min(1, "Alasan harus diisi"),
+  tanggalTerbit: z.string().refine((v) => !isNaN(Date.parse(v)), {
+    message: "Tanggal terbit tidak valid",
+  }),
+  tanggalBerakhir: z.string().refine((v) => !isNaN(Date.parse(v)), {
+    message: "Tanggal berakhir tidak valid",
+  }),
+  keterangan: z.string().optional().nullable(),
+});

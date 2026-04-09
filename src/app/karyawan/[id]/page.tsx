@@ -1,8 +1,9 @@
 import { db } from "@/db";
-import { employees, contracts, penalties, documents, activityLogs } from "@/db/schema";
+import { employees, contracts, penalties, documents, activityLogs, warningLetters } from "@/db/schema";
 import { eq, desc } from "drizzle-orm";
 import { notFound } from "next/navigation";
 import AppLayout from "@/components/AppLayout";
+import WarningLetterModal from "@/components/WarningLetterModal";
 import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
 import Link from "next/link";
@@ -29,6 +30,9 @@ export default async function EmployeeProfilePage({ params }: { params: Promise<
       },
       documents: {
         orderBy: [desc(documents.uploadDate)],
+      },
+      warningLetters: {
+        orderBy: [desc(warningLetters.tanggalTerbit)],
       },
       activityLogs: {
         orderBy: [desc(activityLogs.createdAt)],
@@ -79,6 +83,7 @@ export default async function EmployeeProfilePage({ params }: { params: Promise<
                     <span className={`px-4 py-1 rounded-full text-xs font-black uppercase tracking-widest ${statusColor}`}>
                       {employee.status}
                     </span>
+                    <WarningLetterModal employeeId={employee.id} onSuccess={() => {}} />
                   </div>
                   <p className="text-lg text-on-surface-variant font-medium">NIP: {employee.nip}</p>
                 </div>
@@ -138,14 +143,25 @@ export default async function EmployeeProfilePage({ params }: { params: Promise<
               </div>
 
               <div className="glass-card rounded-3xl p-6 border border-white/5 bg-gradient-to-br from-error/10 to-transparent">
-                <h3 className="font-headline font-bold text-lg text-on-surface mb-4">Ringkasan Denda</h3>
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-2xl bg-error/20 flex items-center justify-center text-error">
-                    <span className="material-symbols-outlined font-bold">account_balance_wallet</span>
+                <h3 className="font-headline font-bold text-lg text-on-surface mb-4">Ringkasan Denda & SP</h3>
+                <div className="space-y-4">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-2xl bg-error/20 flex items-center justify-center text-error">
+                      <span className="material-symbols-outlined font-bold">account_balance_wallet</span>
+                    </div>
+                    <div>
+                      <p className="text-2xl font-black text-error">{formattedTotalPenalties}</p>
+                      <p className="text-xs text-on-surface-variant font-medium">Total Denda Belum Lunas</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-2xl font-black text-error">{formattedTotalPenalties}</p>
-                    <p className="text-xs text-on-surface-variant font-medium">Total Belum Lunas</p>
+                  <div className="flex items-center gap-4 border-t border-white/5 pt-4">
+                    <div className="w-12 h-12 rounded-2xl bg-error/20 flex items-center justify-center text-error">
+                      <span className="material-symbols-outlined font-bold">gavel</span>
+                    </div>
+                    <div>
+                      <p className="text-2xl font-black text-error">{employee.warningLetters.length}</p>
+                      <p className="text-xs text-on-surface-variant font-medium">Total Surat Peringatan</p>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -180,6 +196,45 @@ export default async function EmployeeProfilePage({ params }: { params: Promise<
                   ))}
                   {employee.contracts.length === 0 && (
                     <p className="text-center py-4 text-sm text-on-surface-variant">Belum ada data kontrak.</p>
+                  )}
+                </div>
+              </div>
+
+              {/* Warning Letters History */}
+              <div className="glass-card rounded-3xl p-6 border border-white/5">
+                <div className="flex justify-between items-center mb-6">
+                  <h3 className="font-headline font-bold text-lg text-on-surface flex items-center gap-2">
+                    <span className="material-symbols-outlined text-error">history_edu</span>
+                    Riwayat Surat Peringatan
+                  </h3>
+                </div>
+                <div className="space-y-4">
+                  {employee.warningLetters.map((sp) => {
+                    const isExpired = new Date(sp.tanggalBerakhir) < new Date();
+                    return (
+                      <div key={sp.id} className="p-4 rounded-2xl bg-white/5 border border-white/5 flex justify-between items-start">
+                        <div className="flex gap-4">
+                          <div className="w-10 h-10 rounded-xl bg-error/20 flex items-center justify-center text-error flex-shrink-0">
+                            <span className="font-black text-xs">{sp.tipe.replace("_", " ")}</span>
+                          </div>
+                          <div>
+                            <p className="font-bold text-on-surface">{sp.alasan}</p>
+                            <p className="text-xs text-on-surface-variant">
+                              {format(new Date(sp.tanggalTerbit), "dd/MM/yy")} — {format(new Date(sp.tanggalBerakhir), "dd/MM/yy")}
+                            </p>
+                            {sp.keterangan && <p className="text-[10px] text-outline mt-1 italic">"{sp.keterangan}"</p>}
+                          </div>
+                        </div>
+                        <span className={`px-2 py-0.5 rounded text-[10px] font-black tracking-tighter ${
+                          !isExpired ? "bg-error text-white" : "bg-white/10 text-outline"
+                        }`}>
+                          {!isExpired ? "AKTIF" : "EXPIRED"}
+                        </span>
+                      </div>
+                    );
+                  })}
+                  {employee.warningLetters.length === 0 && (
+                    <p className="text-center py-4 text-sm text-on-surface-variant">Karyawan ini tidak memiliki riwayat SP.</p>
                   )}
                 </div>
               </div>

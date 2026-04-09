@@ -93,6 +93,7 @@ export const employeesRelations = relations(employees, ({ many }) => ({
   apdItems: many(apdItems),
   documents: many(documents),
   activityLogs: many(activityLogs),
+  warningLetters: many(warningLetters),
 }));
 
 // ---------- CONTRACTS ----------
@@ -223,13 +224,35 @@ export const documentsRelations = relations(documents, ({ one }) => ({
   }),
 }));
 
+// ---------- WARNING LETTERS (SP) ----------
+export const warningLetters = pgTable("warning_letters", {
+  id: serial("id").primaryKey(),
+  employeeId: integer("employee_id")
+    .notNull()
+    .references(() => employees.id, { onDelete: "cascade" }),
+  tipe: text("tipe").notNull(), // 'SP_1' | 'SP_2' | 'SP_3'
+  alasan: text("alasan").notNull(),
+  tanggalTerbit: date("tanggal_terbit").notNull(),
+  tanggalBerakhir: date("tanggal_berakhir").notNull(),
+  keterangan: text("keterangan"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const warningLettersRelations = relations(warningLetters, ({ one }) => ({
+  employee: one(employees, {
+    fields: [warningLetters.employeeId],
+    references: [employees.id],
+  }),
+}));
+
 // ---------- ACTIVITY LOGS ----------
 export const activityLogs = pgTable("activity_logs", {
   id: serial("id").primaryKey(),
   employeeId: integer("employee_id").references(() => employees.id, {
     onDelete: "set null",
   }),
-  tipeAktivitas: text("tipe_aktivitas").notNull(), // 'ONBOARDING' | 'OFFBOARDING' | 'PENALTY' | 'DOCUMENT_UPLOAD' | 'CONTRACT_UPDATE' | 'APD_UPDATE'
+  tipeAktivitas: text("tipe_aktivitas").notNull(), // 'ONBOARDING' | 'OFFBOARDING' | 'PENALTY' | 'DOCUMENT_UPLOAD' | 'CONTRACT_UPDATE' | 'APD_UPDATE' | 'WARNING_LETTER'
   deskripsi: text("deskripsi").notNull(),
   detail: text("detail"),
   createdAt: timestamp("created_at").notNull().defaultNow(),

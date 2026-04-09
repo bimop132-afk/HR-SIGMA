@@ -34,6 +34,7 @@ export default async function KaryawanPage({ searchParams }: { searchParams: { s
     .orderBy(desc(employees.createdAt));
 
   const formattedEmployees = data.map(e => ({
+    id: e.id,
     initials: getInitials(e.namaLengkap),
     name: e.namaLengkap,
     nip: e.nip,

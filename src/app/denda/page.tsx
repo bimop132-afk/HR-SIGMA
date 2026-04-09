@@ -1,40 +1,45 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import AppLayout from "@/components/AppLayout";
 import DendaHeader from "@/components/DendaHeader";
 import PenaltyStatsCard from "@/components/PenaltyStatsCard";
 import PenaltyFilters from "@/components/PenaltyFilters";
-import PenaltyList from "@/components/PenaltyList";
-import { db } from "@/db";
-import { penalties, employees } from "@/db/schema";
-import { desc, eq } from "drizzle-orm";
+import PenaltyList, { Penalty } from "@/components/PenaltyList";
+import PenaltyModal from "@/components/PenaltyModal";
 import { format } from "date-fns";
 import { id } from "date-fns/locale";
 
-export const dynamic = "force-dynamic";
+export default function DendaPage() {
+  const [penalties, setPenalties] = useState<Penalty[]>([]);
+  const [loading, setLoading] = useState(true);
 
-export default async function DendaPage() {
-  const rawPenalties = await db
-    .select({
-      id: penalties.id,
-      amount: penalties.jumlah,
-      reason: penalties.alasan,
-      date: penalties.tanggalDenda,
-      status: penalties.status,
-      employee: {
-        namaLengkap: employees.namaLengkap,
+  const fetchPenalties = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/penalties");
+      const json = await res.json();
+      if (json.success) {
+        const formatted = json.data.map((p: any) => ({
+          id: p.id,
+          name: p.name.split(" ").slice(0, 2).map((n: string, i: number) => i === 1 ? n[0] + "." : n).join(" "),
+          reason: p.alasan,
+          amount: p.jumlah,
+          date: format(new Date(p.tanggalDenda), "dd/MM/yy", { locale: id }),
+          isLunas: p.status === "LUNAS"
+        }));
+        setPenalties(formatted);
       }
-    })
-    .from(penalties)
-    .innerJoin(employees, eq(penalties.employeeId, employees.id))
-    .orderBy(desc(penalties.tanggalDenda));
+    } catch (e) {
+      console.error("Failed to fetch penalties");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  const formattedPenalties = rawPenalties.map(p => ({
-    id: p.id,
-    name: p.employee.namaLengkap.split(" ").slice(0, 2).map((n, i) => i === 1 ? n[0] + "." : n).join(" "),
-    reason: p.reason,
-    amount: p.amount,
-    date: format(new Date(p.date), "dd/MM/yy", { locale: id }),
-    isLunas: p.status === "LUNAS"
-  }));
+  useEffect(() => {
+    fetchPenalties();
+  }, []);
 
   return (
     <AppLayout showBottomNav={true}>
@@ -43,17 +48,21 @@ export default async function DendaPage() {
           <DendaHeader />
           <PenaltyStatsCard />
           <PenaltyFilters />
-          <PenaltyList data={formattedPenalties} />
+          {loading ? (
+            <div className="space-y-4">
+              {[1, 2, 3].map(i => (
+                <div key={i} className="h-20 bg-surface-container-highest animate-pulse rounded-2xl"></div>
+              ))}
+            </div>
+          ) : (
+            <PenaltyList data={penalties} />
+          )}
           
-          {/* Empty State/Bottom Spacer */}
           <div className="h-10"></div>
         </div>
       </div>
 
-      {/* FAB */}
-      <button className="fixed bottom-24 lg:bottom-10 right-6 liquid-light text-on-primary-fixed w-14 h-14 rounded-2xl shadow-2xl shadow-red-500/50 flex items-center justify-center active:scale-90 transition-transform duration-150 z-50 cursor-pointer hover:brightness-110">
-        <span className="material-symbols-outlined font-bold text-3xl">add</span>
-      </button>
+      <PenaltyModal onSuccess={fetchPenalties} />
     </AppLayout>
   );
 }

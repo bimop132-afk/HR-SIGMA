@@ -21,6 +21,7 @@ export const createEmployeeSchema = z.object({
   tanggalMasuk: z.string().refine((v) => !isNaN(Date.parse(v)), {
     message: "Tanggal masuk tidak valid",
   }),
+  nomorBpjs: z.string().optional().nullable(),
   fotoUrl: z.string().url().optional().nullable(),
   nip: z.string().optional(), // Allowed for old employees manual input
 });

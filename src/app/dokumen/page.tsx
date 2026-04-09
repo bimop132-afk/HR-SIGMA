@@ -3,7 +3,7 @@ import { useState, useMemo, useEffect, useRef } from "react";
 import AppLayout from "@/components/AppLayout";
 import DocumentCard from "@/components/dokumen/DocumentCard";
 
-type DocType = "Kontrak" | "KTP" | "NPWP" | "SK" | "Lainnya";
+type DocType = "Kontrak" | "KTP" | "NPWP" | "SK" | "Paklaring" | "Ijazah" | "Lainnya";
 type FilterType = "Semua" | DocType;
 
 interface DocumentItem {
@@ -32,11 +32,13 @@ const getIcon = (tipe: string) => {
     case "KTP": return "badge";
     case "NPWP": return "receipt_long";
     case "SK": return "gavel";
+    case "Paklaring": return "history_edu";
+    case "Ijazah": return "school";
     default: return "folder";
   }
 };
 
-const FILTER_TABS: FilterType[] = ["Semua", "KTP", "NPWP", "Kontrak", "SK"];
+const FILTER_TABS: FilterType[] = ["Semua", "KTP", "NPWP", "Kontrak", "SK", "Paklaring", "Ijazah"];
 
 export default function DokumenPage() {
   const [activeFilter, setActiveFilter] = useState<FilterType>("Semua");
@@ -258,7 +260,7 @@ export default function DokumenPage() {
             <div className="space-y-3">
               <select value={docType} onChange={e => setDocType(e.target.value as DocType)} className="w-full bg-surface-container-high border border-white/5 rounded-xl py-3 px-4 text-sm text-on-surface font-body cursor-pointer">
                 <option value="">Pilih Jenis Dokumen</option>
-                {(["KTP", "NPWP", "Kontrak", "SK", "Lainnya"] as DocType[]).map((t) => (
+                {(["KTP", "NPWP", "Kontrak", "SK", "Paklaring", "Ijazah", "Lainnya"] as DocType[]).map((t) => (
                   <option key={t} value={t}>
                     {t}
                   </option>

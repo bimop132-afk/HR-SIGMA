@@ -1,4 +1,7 @@
+import Link from "next/link";
+
 type Employee = {
+  id: number;
   initials: string;
   name: string;
   nip: string;
@@ -14,7 +17,7 @@ type Employee = {
 
 export default function EmployeeCard({ employee }: { employee: Employee }) {
   return (
-    <div className={`glass-card rounded-2xl p-5 border border-white/5 relative overflow-hidden group ${employee.opacity || ""}`}>
+    <Link href={`/karyawan/${employee.id}`} className={`block glass-card rounded-2xl p-5 border border-white/5 relative overflow-hidden group ${employee.opacity || ""} hover:bg-white/5 transition-all duration-300 active:scale-[0.98]`}>
       <div className="flex justify-between items-start mb-4">
         <div className="flex gap-4">
           <div className={`w-14 h-14 rounded-xl flex items-center justify-center font-bold text-lg ${employee.avatarColor}`}>
@@ -50,6 +53,6 @@ export default function EmployeeCard({ employee }: { employee: Employee }) {
           </span>
         </div>
       </div>
-    </div>
+    </Link>
   );
 }

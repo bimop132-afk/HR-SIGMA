@@ -16,11 +16,17 @@ export default function ResignModal() {
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(false);
 
-  // Form State
   const [employeeId, setEmployeeId] = useState("");
   const [tipe, setTipe] = useState("NORMAL");
   const [tanggalResign, setTanggalResign] = useState("");
   const [alasan, setAlasan] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [showDropdown, setShowDropdown] = useState(false);
+
+  const filteredEmployees = employees.filter(emp => 
+    emp.namaLengkap.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    emp.nip.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   const openModal = async () => {
     setIsOpen(true);
@@ -47,6 +53,8 @@ export default function ResignModal() {
     setTipe("NORMAL");
     setTanggalResign("");
     setAlasan("");
+    setSearchTerm("");
+    setShowDropdown(false);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -113,27 +121,48 @@ export default function ResignModal() {
             </div>
 
             <form onSubmit={handleSubmit} className="flex flex-col gap-6 overflow-y-auto pr-2 custom-scrollbar">
-              <div className="space-y-2">
-                <label className="text-xs font-label text-on-surface-variant uppercase tracking-widest">Karyawan</label>
-                {fetching ? (
-                  <div className="h-14 bg-surface-container-highest animate-pulse rounded-xl"></div>
-                ) : (
-                  <select
-                    value={employeeId}
-                    onChange={(e) => setEmployeeId(e.target.value)}
-                    required
-                    disabled={employees.length === 0}
-                    className="w-full bg-surface-container-highest border border-white/5 rounded-xl px-4 py-4 text-on-surface focus:ring-2 focus:ring-primary appearance-none custom-select disabled:opacity-50"
-                  >
-                    <option value="" disabled>
-                      {employees.length === 0 ? "Tidak ada karyawan dengan status Aktif" : "Pilih Karyawan Aktif..."}
-                    </option>
-                    {employees.map(emp => (
-                      <option key={emp.id} value={emp.id}>
-                        {emp.namaLengkap} - {emp.nip}
-                      </option>
-                    ))}
-                  </select>
+              <div className="space-y-2 relative">
+                <label className="text-xs font-label text-on-surface-variant uppercase tracking-widest">Cari Karyawan (NIP / Nama)</label>
+                <div className="relative">
+                  <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant/50">search</span>
+                  <input
+                    type="text"
+                    value={searchTerm}
+                    onChange={(e) => {
+                      setSearchTerm(e.target.value);
+                      setShowDropdown(true);
+                      if (!e.target.value) setEmployeeId("");
+                    }}
+                    onFocus={() => setShowDropdown(true)}
+                    placeholder="Contoh: 2501LPK... atau Nama"
+                    className="w-full bg-surface-container-highest border border-white/5 rounded-xl pl-12 pr-4 py-4 text-on-surface focus:ring-2 focus:ring-primary outline-none transition-all placeholder:text-on-surface-variant/50"
+                  />
+                </div>
+
+                {showDropdown && (searchTerm || fetching) && (
+                  <div className="absolute top-full left-0 right-0 z-[110] mt-2 bg-surface-container-high border border-white/10 rounded-2xl shadow-2xl max-h-60 overflow-y-auto custom-scrollbar p-2">
+                    {fetching ? (
+                      <div className="p-4 text-center text-sm text-on-surface-variant animate-pulse">Memuat data...</div>
+                    ) : filteredEmployees.length === 0 ? (
+                      <div className="p-4 text-center text-sm text-on-surface-variant">Karyawan tidak ditemukan</div>
+                    ) : (
+                      filteredEmployees.map(emp => (
+                        <button
+                          key={emp.id}
+                          type="button"
+                          onClick={() => {
+                            setEmployeeId(emp.id.toString());
+                            setSearchTerm(`${emp.namaLengkap} (${emp.nip})`);
+                            setShowDropdown(false);
+                          }}
+                          className={`w-full text-left p-3 rounded-xl transition-colors hover:bg-primary/10 flex flex-col ${employeeId === emp.id.toString() ? 'bg-primary/20 border border-primary/30' : ''}`}
+                        >
+                          <span className="font-bold text-on-surface">{emp.namaLengkap}</span>
+                          <span className="text-xs text-on-surface-variant">{emp.nip} • {emp.status}</span>
+                        </button>
+                      ))
+                    )}
+                  </div>
                 )}
               </div>
 

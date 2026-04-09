@@ -16,6 +16,7 @@ export default function FloatingActionButton() {
   const [sektor, setSektor] = useState(1);
   const [regu, setRegu] = useState(1);
   const [tanggalMasuk, setTanggalMasuk] = useState("");
+  const [nomorBpjs, setNomorBpjs] = useState("");
 
   const openModal = () => setIsOpen(true);
   const closeModal = () => {
@@ -28,6 +29,7 @@ export default function FloatingActionButton() {
     setSektor(1);
     setRegu(1);
     setTanggalMasuk("");
+    setNomorBpjs("");
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -43,6 +45,7 @@ export default function FloatingActionButton() {
       sektor,
       regu,
       tanggalMasuk,
+      nomorBpjs: nomorBpjs || null,
     };
 
     try {
@@ -146,6 +149,19 @@ export default function FloatingActionButton() {
                     value={tanggalMasuk}
                     onChange={(e) => setTanggalMasuk(e.target.value)}
                     className="w-full bg-surface-container-highest border border-white/5 rounded-xl px-4 py-4 text-on-surface focus:ring-2 focus:ring-primary h-14"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-1 gap-6">
+                <div className="space-y-2">
+                  <label className="text-xs font-label text-on-surface-variant uppercase tracking-widest">NOMOR BPJS (OPSIONAL)</label>
+                  <input
+                    type="text"
+                    value={nomorBpjs}
+                    onChange={(e) => setNomorBpjs(e.target.value)}
+                    className="w-full bg-surface-container-highest border border-white/5 rounded-xl px-4 py-4 text-on-surface focus:ring-2 focus:ring-primary outline-none transition-all placeholder:text-on-surface-variant/50"
+                    placeholder="Contoh: 0001234567890"
                   />
                 </div>
               </div>

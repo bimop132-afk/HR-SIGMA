@@ -80,6 +80,7 @@ export const employees = pgTable("employees", {
   status: text("status").notNull().default("AKTIF"), // 'AKTIF' | 'NON_AKTIF'
   tanggalMasuk: date("tanggal_masuk").notNull(),
   tanggalKeluar: date("tanggal_keluar"),
+  nomorBpjs: text("nomor_bpjs"),
   fotoUrl: text("foto_url"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),

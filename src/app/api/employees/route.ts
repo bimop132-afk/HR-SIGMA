@@ -90,6 +90,7 @@ export async function POST(request: NextRequest) {
         nip: finalNip,
         jalurMasuk,
         tanggalMasuk,
+        nomorBpjs: rest.nomorBpjs,
         ...rest,
       })
       .returning();

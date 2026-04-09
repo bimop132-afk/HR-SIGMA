@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 
-type DocType = "Kontrak" | "KTP" | "NPWP" | "SK" | "Lainnya";
+type DocType = "Kontrak" | "KTP" | "NPWP" | "SK" | "Paklaring" | "Ijazah" | "Lainnya";
 
 interface DocumentData {
   id: number;
@@ -38,6 +38,18 @@ const TYPE_STYLES: Record<DocType, { bg: string; text: string; iconColor: string
     text: "text-on-surface-variant",
     iconColor: "text-tertiary",
     iconBg: "bg-tertiary/10",
+  },
+  Paklaring: {
+    bg: "bg-surface-variant",
+    text: "text-on-surface-variant",
+    iconColor: "text-primary",
+    iconBg: "bg-primary/10",
+  },
+  Ijazah: {
+    bg: "bg-surface-variant",
+    text: "text-on-surface-variant",
+    iconColor: "text-secondary",
+    iconBg: "bg-secondary/10",
   },
   Lainnya: {
     bg: "bg-surface-variant",

@@ -49,7 +49,7 @@ export async function GET(request: NextRequest) {
         fotoUrl: c.employees?.foto_url,
         daysLeft,
         severity: contractSeverity,
-        department: `Sektor ${c.employees?.sektor}`,
+        department: c.employees?.sektor ? `Sektor ${c.employees.sektor}` : "Belum Penempatan",
         avatar: c.employees?.foto_url || "",
       };
     });

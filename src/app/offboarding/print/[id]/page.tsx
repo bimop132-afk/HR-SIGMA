@@ -65,7 +65,7 @@ export default async function PrintResignPage({ params }: { params: Promise<{ id
             <tr>
               <td className="w-40 py-1 uppercase">JABATAN</td>
               <td className="px-2">:</td>
-              <td className="uppercase font-semibold">{data.employees?.posisi} Sektor {data.employees?.sektor} - Regu {data.employees?.regu}</td>
+              <td className="uppercase font-semibold">{data.employees?.posisi} {data.employees?.sektor ? `Sektor ${data.employees.sektor}` : ""} {data.employees?.regu ? `- Regu ${data.employees.regu}` : ""}</td>
             </tr>
           </tbody>
         </table>

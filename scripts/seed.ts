@@ -179,7 +179,7 @@ async function seed() {
     if (emp.status === "AKTIF") {
       // Some expire soon, some later
       const daysToAdd =
-        emp.sektor <= 3 ? 15 : emp.sektor <= 6 ? 60 : 180;
+        (emp.sektor || 0) <= 3 ? 15 : (emp.sektor || 0) <= 6 ? 60 : 180;
       end.setDate(end.getDate() + daysToAdd + 365);
     } else {
       end.setFullYear(end.getFullYear() + 1);

@@ -88,11 +88,11 @@ export default async function EmployeeProfilePage({ params }: { params: Promise<
                   </div>
                   <div className="bg-white/5 rounded-2xl p-4 border border-white/5">
                     <p className="text-[10px] text-outline uppercase tracking-widest mb-1">Sektor</p>
-                    <p className="font-bold text-on-surface">Sektor {employee.sektor}</p>
+                    <p className="font-bold text-on-surface">{employee.sektor ? `Sektor ${employee.sektor}` : "Belum Penempatan"}</p>
                   </div>
                   <div className="bg-white/5 rounded-2xl p-4 border border-white/5">
                     <p className="text-[10px] text-outline uppercase tracking-widest mb-1">Regu</p>
-                    <p className="font-bold text-on-surface">Regu {employee.regu}</p>
+                    <p className="font-bold text-on-surface">{employee.regu ? `Regu ${employee.regu}` : "-"}</p>
                   </div>
                   <div className="bg-white/5 rounded-2xl p-4 border border-white/5">
                     <p className="text-[10px] text-outline uppercase tracking-widest mb-1">Jalur Masuk</p>

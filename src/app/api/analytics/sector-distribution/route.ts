@@ -13,7 +13,8 @@ export async function GET() {
 
     const distributionMap: Record<number, number> = {};
     (data || []).forEach((e: any) => {
-      distributionMap[e.sektor] = (distributionMap[e.sektor] || 0) + 1;
+      const key = e.sektor || 0; // Use 0 or "Unassigned" as a key for null sectors
+      distributionMap[key] = (distributionMap[key] || 0) + 1;
     });
 
     const formattedData = Object.entries(distributionMap)

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import toast from "react-hot-toast";
+import { useRouter } from "next/navigation";
 
 type Employee = {
   id: number;
@@ -14,12 +15,13 @@ export default function WarningLetterModal({
   onSuccess 
 }: { 
   employeeId?: number; 
-  onSuccess: () => void 
+  onSuccess?: () => void 
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(false);
+  const router = useRouter();
 
   // Form State
   const [employeeId, setEmployeeId] = useState(initialEmployeeId?.toString() || "");
@@ -91,7 +93,11 @@ export default function WarningLetterModal({
       if (json.success) {
         toast.success(`Surat Peringatan ${tipe.replace("_", " ")} berhasil diterbitkan!`);
         closeModal();
-        onSuccess();
+        if (onSuccess) {
+          onSuccess();
+        } else {
+          router.refresh();
+        }
       } else {
         throw new Error(json.error || "Gagal menerbitkan SP");
       }

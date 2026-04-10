@@ -75,7 +75,7 @@ export default async function EmployeeProfilePage({ params }: { params: Promise<
                     <span className={`px-4 py-1 rounded-full text-xs font-black uppercase tracking-widest ${statusColor}`}>
                       {employee.status}
                     </span>
-                    <WarningLetterModal employeeId={employee.id} onSuccess={() => {}} />
+                    <WarningLetterModal employeeId={employee.id} />
                   </div>
                   <p className="text-lg text-on-surface-variant font-medium">NIP: {employee.nip}</p>
                 </div>

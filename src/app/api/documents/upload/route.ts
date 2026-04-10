@@ -1,7 +1,5 @@
 import { NextResponse } from "next/server";
-import { db } from "@/db";
-import { documents } from "@/db/schema";
-import { createSupabaseClient } from "@/lib/supabase";
+import { supabaseAdmin as supabase } from "@/lib/supabase";
 
 export async function POST(req: Request) {
   try {
@@ -14,8 +12,6 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false, error: "Missing fields" }, { status: 400 });
     }
 
-    const supabase = createSupabaseClient();
-    
     // Convert to buffer
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
@@ -29,7 +25,7 @@ export async function POST(req: Request) {
       });
 
     if (uploadError) {
-      console.error("Supabase chunk error:", uploadError);
+      console.error("Supabase storage error:", uploadError);
       return NextResponse.json({ success: false, error: uploadError.message }, { status: 500 });
     }
 
@@ -39,15 +35,26 @@ export async function POST(req: Request) {
       
     const url = publicData.publicUrl;
 
-    // Save to DB
-    const [inserted] = await db.insert(documents).values({
-      employeeId: parseInt(employeeId),
-      fileName: file.name,
-      tipe: type,
-      filePath: url,
-      fileSize: file.size,
-      uploadDate: new Date().toISOString(),
-    }).returning();
+    // Save to DB using Supabase native insert
+    const { data: inserted, error: dbError } = await supabase
+      .from("documents")
+      .insert({
+        employee_id: parseInt(employeeId),
+        file_name: file.name,
+        tipe: type,
+        file_path: url,
+        file_size: file.size,
+        upload_date: new Date().toISOString().split("T")[0],
+      })
+      .select()
+      .single();
+
+    if (dbError) {
+      console.error("Supabase DB error:", dbError);
+      return NextResponse.json({ success: false, error: dbError.message }, { status: 500 });
+    }
+
+    return NextResponse.json({ success: true, data: inserted });
 
     return NextResponse.json({ success: true, data: inserted });
   } catch (error: any) {

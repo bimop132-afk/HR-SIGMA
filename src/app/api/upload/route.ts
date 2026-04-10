@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createSupabaseClient } from "@/lib/supabase";
+import { supabaseAdmin as supabase } from "@/lib/supabase";
 
 export async function POST(req: NextRequest) {
   try {
@@ -11,8 +11,6 @@ export async function POST(req: NextRequest) {
     if (!file) {
       return NextResponse.json({ success: false, error: "No file provided" }, { status: 400 });
     }
-
-    const supabase = createSupabaseClient();
     
     // Convert to buffer
     const arrayBuffer = await file.arrayBuffer();

@@ -54,6 +54,10 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
             <span className="material-symbols-outlined">person_add</span>
             <span className="font-manrope text-sm font-medium">Onboarding</span>
           </Link>
+          <Link href="/karyawan/penempatan" className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 ease-in-out cursor-pointer group ${pathname === "/karyawan/penempatan" ? "bg-red-500/10 text-red-500 border-l-4 border-red-600" : "text-zinc-400 hover:text-zinc-100 hover:bg-white/5"}`} onClick={() => window.innerWidth < 1024 && onClose()}>
+            <span className="material-symbols-outlined">assignment_ind</span>
+            <span className="font-manrope text-sm font-medium">Penempatan</span>
+          </Link>
           <Link href="/offboarding" className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 ease-in-out cursor-pointer group ${pathname === "/offboarding" ? "bg-red-500/10 text-red-500 border-l-4 border-red-600" : "text-zinc-400 hover:text-zinc-100 hover:bg-white/5"}`} onClick={() => window.innerWidth < 1024 && onClose()}>
             <span className="material-symbols-outlined">person_remove</span>
             <span className="font-manrope text-sm font-medium">Resign</span>

@@ -75,13 +75,36 @@ export const employees = pgTable("employees", {
   namaLengkap: text("nama_lengkap").notNull(),
   jalurMasuk: text("jalur_masuk").notNull(), // 'LPK' | 'UMUM'
   posisi: text("posisi").notNull(),
-  sektor: integer("sektor").notNull(),
-  regu: integer("regu").notNull(),
+  sektor: integer("sektor"), // Nullable for new employees before placement
+  regu: integer("regu"), // Nullable for new employees before placement
   status: text("status").notNull().default("AKTIF"), // 'AKTIF' | 'NON_AKTIF'
   tanggalMasuk: date("tanggal_masuk").notNull(),
   tanggalKeluar: date("tanggal_keluar"),
   nomorBpjs: text("nomor_bpjs"),
   fotoUrl: text("foto_url"),
+  
+  // New Fields from Expanded Onboarding
+  jenisKelamin: text("jenis_kelamin"),
+  tempatLahir: text("tempat_lahir"),
+  tanggalLahir: date("tanggal_lahir"),
+  alamatLengkap: text("alamat_lengkap"),
+  noHp: text("no_hp"),
+  emailAktif: text("email_aktif"),
+  noKk: text("no_kk"),
+  namaIbuKandung: text("nama_ibu_kandung"),
+  rt: text("rt"),
+  rw: text("rw"),
+  kelurahan: text("kelurahan"),
+  kecamatan: text("kecamatan"),
+  kabupaten: text("kabupaten"),
+  masaLakuIdentitas: text("masa_laku_identitas"),
+  golonganDarah: text("golongan_darah"),
+  seragamSize: text("seragam_size"),
+  sepatuSize: integer("sepatu_size"),
+  fotoKtpUrl: text("foto_ktp_url"),
+  fotoKkUrl: text("foto_kk_url"),
+  fotoIjazahUrl: text("foto_ijazah_url"),
+
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });

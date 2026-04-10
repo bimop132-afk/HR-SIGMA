@@ -85,6 +85,28 @@ export async function POST(request: NextRequest) {
         sektor: rest.sektor,
         regu: rest.regu,
         foto_url: rest.fotoUrl,
+        
+        // New Fields
+        jenis_kelamin: rest.jenisKelamin,
+        tempat_lahir: rest.tempatLahir,
+        tanggal_lahir: rest.tanggalLahir,
+        alamat_lengkap: rest.alamatLengkap,
+        no_hp: rest.noHp,
+        email_aktif: rest.emailAktif,
+        no_kk: rest.noKk,
+        nama_ibu_kandung: rest.namaIbuKandung,
+        rt: rest.rt,
+        rw: rest.rw,
+        kelurahan: rest.kelurahan,
+        kecamatan: rest.kecamatan,
+        kabupaten: rest.kabupaten,
+        masa_laku_identitas: rest.masaLakuIdentitas,
+        golongan_darah: rest.golonganDarah,
+        seragam_size: rest.seragamSize,
+        sepatu_size: rest.sepatuSize,
+        foto_ktp_url: rest.fotoKtpUrl,
+        foto_kk_url: rest.fotoKkUrl,
+        foto_ijazah_url: rest.fotoIjazahUrl,
       })
       .select()
       .single();

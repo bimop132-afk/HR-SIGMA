@@ -14,16 +14,42 @@ export const createEmployeeSchema = z.object({
   sektor: z
     .number()
     .int()
-    .refine((v) => [1, 2, 3, 4, 5, 6, 8, 9, 10].includes(v), {
+    .refine((v) => [0, 1, 2, 3, 4, 5, 6, 8, 9, 10].includes(v), {
       message: "Sektor tidak valid",
-    }),
-  regu: z.number().int().min(1).max(3),
+    })
+    .optional()
+    .nullable(),
+  regu: z.number().int().min(0).max(3).optional().nullable(),
   tanggalMasuk: z.string().refine((v) => !isNaN(Date.parse(v)), {
     message: "Tanggal masuk tidak valid",
   }),
   nomorBpjs: z.string().optional().nullable(),
   fotoUrl: z.string().url().optional().nullable(),
-  nip: z.string().optional(), // Allowed for old employees manual input
+  nip: z.string().optional(),
+
+  // New Fields
+  jenisKelamin: z.enum(["L", "P"]).optional().nullable(),
+  tempatLahir: z.string().optional().nullable(),
+  tanggalLahir: z.string().optional().nullable(),
+  alamatLengkap: z.string().optional().nullable(),
+  noHp: z.string().optional().nullable(),
+  emailAktif: z.string().email("Format email tidak valid").optional().nullable(),
+  noKk: z.string().optional().nullable(),
+  namaIbuKandung: z.string().optional().nullable(),
+  rt: z.string().optional().nullable(),
+  rw: z.string().optional().nullable(),
+  kelurahan: z.string().optional().nullable(),
+  kecamatan: z.string().optional().nullable(),
+  kabupaten: z.string().optional().nullable(),
+  masaLakuIdentitas: z.string().optional().nullable(),
+  golonganDarah: z.string().optional().nullable(),
+  seragamSize: z.string().optional().nullable(),
+  sepatuSize: z.number().int().optional().nullable(),
+
+  // Document URLs
+  fotoKtpUrl: z.string().url().optional().nullable(),
+  fotoKkUrl: z.string().url().optional().nullable(),
+  fotoIjazahUrl: z.string().url().optional().nullable(),
 });
 
 export const updateEmployeeSchema = createEmployeeSchema.extend({

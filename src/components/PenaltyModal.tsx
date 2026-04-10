@@ -7,6 +7,7 @@ type Employee = {
   id: number;
   nama_lengkap: string;
   nip: string;
+  status: string;
 };
 
 export default function PenaltyModal({ onSuccess }: { onSuccess: () => void }) {
@@ -20,6 +21,13 @@ export default function PenaltyModal({ onSuccess }: { onSuccess: () => void }) {
   const [alasan, setAlasan] = useState("");
   const [jumlah, setJumlah] = useState("");
   const [tanggalDenda, setTanggalDenda] = useState(new Date().toISOString().split("T")[0]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [showDropdown, setShowDropdown] = useState(false);
+
+  const filteredEmployees = employees.filter(emp => 
+    (emp.nama_lengkap?.toLowerCase() || "").includes(searchTerm.toLowerCase()) ||
+    (emp.nip?.toLowerCase() || "").includes(searchTerm.toLowerCase())
+  );
 
   const openModal = async () => {
     setIsOpen(true);
@@ -42,6 +50,8 @@ export default function PenaltyModal({ onSuccess }: { onSuccess: () => void }) {
     setEmployeeId("");
     setAlasan("");
     setJumlah("");
+    setSearchTerm("");
+    setShowDropdown(false);
   };
 
   const setDendaAlfa = () => {
@@ -107,19 +117,49 @@ export default function PenaltyModal({ onSuccess }: { onSuccess: () => void }) {
             </div>
 
             <form onSubmit={handleSubmit} className="flex flex-col gap-6 overflow-y-auto pr-2 custom-scrollbar">
-              <div className="space-y-2">
-                <label className="text-xs font-label text-on-surface-variant uppercase tracking-widest">Karyawan</label>
-                <select
-                  value={employeeId}
-                  onChange={(e) => setEmployeeId(e.target.value)}
-                  required
-                  className="w-full bg-surface-container-highest border border-white/5 rounded-xl px-4 py-4 text-on-surface focus:ring-2 focus:ring-primary appearance-none custom-select"
-                >
-                  <option value="" disabled>Pilih Karyawan...</option>
-                  {employees.map(emp => (
-                    <option key={emp.id} value={emp.id}>{emp.nama_lengkap} - {emp.nip}</option>
-                  ))}
-                </select>
+              <div className="space-y-2 relative">
+                <label className="text-xs font-label text-on-surface-variant uppercase tracking-widest">Cari Karyawan (NIP / Nama)</label>
+                <div className="relative">
+                  <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant/50">search</span>
+                  <input
+                    type="text"
+                    value={searchTerm}
+                    onChange={(e) => {
+                      setSearchTerm(e.target.value);
+                      setShowDropdown(true);
+                      if (!e.target.value) setEmployeeId("");
+                    }}
+                    onFocus={() => setShowDropdown(true)}
+                    placeholder="Cari NIP atau Nama..."
+                    className="w-full bg-surface-container-highest border border-white/5 rounded-xl pl-12 pr-4 py-4 text-on-surface focus:ring-2 focus:ring-primary outline-none transition-all placeholder:text-on-surface-variant/50"
+                  />
+                </div>
+
+                {showDropdown && (searchTerm || fetching) && (
+                  <div className="absolute top-full left-0 right-0 z-[110] mt-2 bg-surface-container-high border border-white/10 rounded-2xl shadow-2xl max-h-60 overflow-y-auto custom-scrollbar p-2">
+                    {fetching ? (
+                      <div className="p-4 text-center text-sm text-on-surface-variant animate-pulse">Memuat data...</div>
+                    ) : filteredEmployees.length === 0 ? (
+                      <div className="p-4 text-center text-sm text-on-surface-variant">Karyawan tidak ditemukan</div>
+                    ) : (
+                      filteredEmployees.map(emp => (
+                        <button
+                          key={emp.id}
+                          type="button"
+                          onClick={() => {
+                            setEmployeeId(emp.id.toString());
+                            setSearchTerm(`${emp.nama_lengkap} (${emp.nip})`);
+                            setShowDropdown(false);
+                          }}
+                          className={`w-full text-left p-3 rounded-xl transition-colors hover:bg-primary/10 flex flex-col ${employeeId === emp.id.toString() ? 'bg-primary/20 border border-primary/30' : ''}`}
+                        >
+                          <span className="font-bold text-on-surface">{emp.nama_lengkap}</span>
+                          <span className="text-xs text-on-surface-variant">{emp.nip} • {emp.status}</span>
+                        </button>
+                      ))
+                    )}
+                  </div>
+                )}
               </div>
 
               <div className="flex gap-2">

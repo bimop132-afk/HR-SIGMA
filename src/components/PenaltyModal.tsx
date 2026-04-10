@@ -5,7 +5,7 @@ import toast from "react-hot-toast";
 
 type Employee = {
   id: number;
-  namaLengkap: string;
+  nama_lengkap: string;
   nip: string;
 };
 
@@ -117,7 +117,7 @@ export default function PenaltyModal({ onSuccess }: { onSuccess: () => void }) {
                 >
                   <option value="" disabled>Pilih Karyawan...</option>
                   {employees.map(emp => (
-                    <option key={emp.id} value={emp.id}>{emp.namaLengkap} - {emp.nip}</option>
+                    <option key={emp.id} value={emp.id}>{emp.nama_lengkap} - {emp.nip}</option>
                   ))}
                 </select>
               </div>

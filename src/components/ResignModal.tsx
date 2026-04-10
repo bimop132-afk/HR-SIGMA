@@ -5,7 +5,7 @@ import toast from "react-hot-toast";
 
 type Employee = {
   id: number;
-  namaLengkap: string;
+  nama_lengkap: string;
   nip: string;
   status: string;
 };
@@ -24,8 +24,8 @@ export default function ResignModal() {
   const [showDropdown, setShowDropdown] = useState(false);
 
   const filteredEmployees = employees.filter(emp => 
-    emp.namaLengkap.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    emp.nip.toLowerCase().includes(searchTerm.toLowerCase())
+    (emp.nama_lengkap?.toLowerCase() || "").includes(searchTerm.toLowerCase()) ||
+    (emp.nip?.toLowerCase() || "").includes(searchTerm.toLowerCase())
   );
 
   const openModal = async () => {
@@ -152,12 +152,12 @@ export default function ResignModal() {
                           type="button"
                           onClick={() => {
                             setEmployeeId(emp.id.toString());
-                            setSearchTerm(`${emp.namaLengkap} (${emp.nip})`);
+                            setSearchTerm(`${emp.nama_lengkap} (${emp.nip})`);
                             setShowDropdown(false);
                           }}
                           className={`w-full text-left p-3 rounded-xl transition-colors hover:bg-primary/10 flex flex-col ${employeeId === emp.id.toString() ? 'bg-primary/20 border border-primary/30' : ''}`}
                         >
-                          <span className="font-bold text-on-surface">{emp.namaLengkap}</span>
+                          <span className="font-bold text-on-surface">{emp.nama_lengkap}</span>
                           <span className="text-xs text-on-surface-variant">{emp.nip} • {emp.status}</span>
                         </button>
                       ))

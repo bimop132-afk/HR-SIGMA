@@ -13,6 +13,7 @@ type Employee = {
   opacity?: string;
   statusBgClass: string;
   statusDotClass: string;
+  tenure?: string;
 };
 
 export default function EmployeeCard({ employee }: { employee: Employee }) {
@@ -51,6 +52,10 @@ export default function EmployeeCard({ employee }: { employee: Employee }) {
             <span className={`w-1.5 h-1.5 rounded-full mr-1.5 ${employee.statusDotClass}`}></span>
             {employee.status}
           </span>
+        </div>
+        <div>
+          <p className="text-[10px] text-outline uppercase tracking-wider mb-1">Lama Bekerja</p>
+          <p className="text-sm font-semibold text-primary">{employee.tenure || "-"}</p>
         </div>
       </div>
     </Link>

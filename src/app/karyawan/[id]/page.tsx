@@ -5,6 +5,7 @@ import WarningLetterModal from "@/components/WarningLetterModal";
 import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
 import Link from "next/link";
+import { calculateTenure } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -131,6 +132,12 @@ export default async function EmployeeProfilePage({ params }: { params: Promise<
                       </span>
                     </div>
                   )}
+                  <div className="flex justify-between items-center py-2 border-b border-white/5">
+                    <span className="text-sm text-on-surface-variant font-medium">Lama Bekerja</span>
+                    <span className="text-sm font-bold text-primary">
+                      {calculateTenure(employee.tanggal_masuk, employee.tanggal_keluar)}
+                    </span>
+                  </div>
                 </div>
               </div>
 

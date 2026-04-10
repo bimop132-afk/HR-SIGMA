@@ -4,6 +4,7 @@ import EmployeeFilters from "@/components/EmployeeFilters";
 import EmployeeCard from "@/components/EmployeeCard";
 import FloatingActionButton from "@/components/FloatingActionButton";
 import { supabaseAdmin as supabase } from "@/lib/supabase";
+import { calculateTenure } from "@/lib/utils";
 
 function getInitials(name: string) {
   if (!name) return "??";
@@ -48,6 +49,7 @@ export default async function KaryawanPage({ searchParams }: { searchParams: Pro
     statusBgClass: e.status === "AKTIF" ? "bg-tertiary-container/20 text-tertiary-fixed" : "bg-surface-variant/40 text-on-surface-variant",
     statusDotClass: e.status === "AKTIF" ? "bg-tertiary" : "bg-error-container",
     opacity: e.status === "AKTIF" ? "" : "opacity-80",
+    tenure: calculateTenure(e.tanggal_masuk, e.tanggal_keluar),
   }));
 
   return (

@@ -6,6 +6,7 @@ import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
 import Link from "next/link";
 import { calculateTenure } from "@/lib/utils";
+import EmployeeDocumentsSection from "@/components/karyawan/EmployeeDocumentsSection";
 
 export const dynamic = "force-dynamic";
 
@@ -274,31 +275,7 @@ export default async function EmployeeProfilePage({ params }: { params: Promise<
               </div>
 
               {/* Documents */}
-              <div className="glass-card rounded-3xl p-6 border border-white/5">
-                <div className="flex justify-between items-center mb-6">
-                  <h3 className="font-headline font-bold text-lg text-on-surface flex items-center gap-2">
-                    <span className="material-symbols-outlined text-secondary">folder_shared</span>
-                    Berkas Digital
-                  </h3>
-                  <Link href="/dokumen" className="text-xs font-bold text-primary hover:underline">Kelola Berkas</Link>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {(documentsList || []).map((doc) => (
-                    <div key={doc.id} className="p-3 rounded-2xl bg-white/5 border border-white/5 flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-secondary/10 flex items-center justify-center text-secondary">
-                        <span className="material-symbols-outlined text-base">description</span>
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="text-sm font-bold text-on-surface truncate">{doc.file_name}</p>
-                        <p className="text-[10px] text-on-surface-variant uppercase font-black">{doc.tipe}</p>
-                      </div>
-                    </div>
-                  ))}
-                  {(!documentsList || documentsList.length === 0) && (
-                    <p className="col-span-2 text-center py-4 text-sm text-on-surface-variant">Belum ada dokumen diunggah.</p>
-                  )}
-                </div>
-              </div>
+              <EmployeeDocumentsSection documents={documentsList || []} />
             </div>
           </div>
         </div>

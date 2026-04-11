@@ -2,6 +2,7 @@
 import { useState, useMemo, useEffect, useRef } from "react";
 import AppLayout from "@/components/AppLayout";
 import DocumentCard from "@/components/dokumen/DocumentCard";
+import DocumentViewer from "@/components/DocumentViewer";
 
 type DocType = "Kontrak" | "KTP" | "NPWP" | "SK" | "Paklaring" | "Ijazah" | "Lainnya";
 type FilterType = "Semua" | DocType;
@@ -46,6 +47,7 @@ export default function DokumenPage() {
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [documents, setDocuments] = useState<DocumentItem[]>([]);
   const [employees, setEmployees] = useState<{id: number, nama: string}[]>([]);
+  const [selectedDoc, setSelectedDoc] = useState<DocumentItem | null>(null);
   
   // Upload State
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -122,16 +124,30 @@ export default function DokumenPage() {
     });
   }, [activeFilter, searchQuery]);
 
+  const groupedDocuments = useMemo(() => {
+    const groups: Record<string, DocumentItem[]> = {};
+    filtered.forEach(doc => {
+      if (!groups[doc.ownerName]) {
+        groups[doc.ownerName] = [];
+      }
+      groups[doc.ownerName].push(doc);
+    });
+    // Sort by name
+    return Object.fromEntries(
+      Object.entries(groups).sort(([a], [b]) => a.localeCompare(b))
+    );
+  }, [filtered]);
+
   return (
     <AppLayout>
-      <div className="p-6 md:p-10 mb-28 max-w-2xl mx-auto lg:mx-0 w-full">
+      <div className="p-6 md:p-10 mb-28 max-w-4xl mx-auto lg:mx-0 w-full">
         {/* Editorial Header */}
-        <section className="space-y-2 mb-8">
+        <section className="space-y-2 mb-8 text-left">
           <h2 className="font-headline font-extrabold text-3xl tracking-tight text-on-surface">
             📁 Manajemen Dokumen
           </h2>
           <p className="text-on-surface-variant text-sm font-medium">
-            Kurasi dan kelola berkas digital karyawan.
+            Kurasi dan kelola berkas digital karyawan yang terorganisir per individu.
           </p>
         </section>
 
@@ -177,11 +193,11 @@ export default function DokumenPage() {
         </section>
 
         {/* Document List */}
-        <section className="space-y-6">
+        <section className="space-y-8">
           <div className="flex justify-between items-center px-1">
-            <h3 className="font-headline font-bold text-lg text-secondary">Berkas Terbaru</h3>
-            <span className="text-xs font-label text-outline uppercase tracking-widest">
-              {filtered.length} Berkas
+            <h3 className="font-headline font-bold text-lg text-secondary">Berkas Karyawan</h3>
+            <span className="text-xs font-label text-outline uppercase tracking-widest bg-white/5 px-3 py-1 rounded-full">
+              {filtered.length} Total Berkas
             </span>
           </div>
 
@@ -192,14 +208,45 @@ export default function DokumenPage() {
               <p className="text-xs text-outline">Coba ubah filter atau kata kunci pencarian</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 gap-4">
-              {filtered.map((doc) => (
-                <DocumentCard key={doc.id} doc={doc} />
+            <div className="space-y-12">
+              {Object.entries(groupedDocuments).map(([ownerName, docs]) => (
+                <div key={ownerName} className="space-y-4 text-left">
+                  <div className="flex items-center gap-4 px-2">
+                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center text-primary border border-white/5 shadow-inner">
+                      <span className="material-symbols-outlined text-2xl">person</span>
+                    </div>
+                    <div>
+                      <h4 className="font-headline font-bold text-on-surface text-lg tracking-tight">{ownerName}</h4>
+                      <div className="flex items-center gap-2">
+                        <p className="text-[10px] text-outline uppercase tracking-widest font-black">{docs.length} Dokumen Tersimpan</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5 pl-2">
+                    {docs.map((doc) => (
+                      <DocumentCard 
+                        key={doc.id} 
+                        doc={doc} 
+                        onView={() => setSelectedDoc(doc)}
+                      />
+                    ))}
+                  </div>
+                </div>
               ))}
             </div>
           )}
         </section>
       </div>
+
+      {/* Viewer */}
+      {selectedDoc && (
+        <DocumentViewer 
+          isOpen={!!selectedDoc} 
+          onClose={() => setSelectedDoc(null)} 
+          url={selectedDoc.filePath} 
+          fileName={selectedDoc.fileName} 
+        />
+      )}
 
       {/* Upload FAB */}
       <button
@@ -238,7 +285,7 @@ export default function DokumenPage() {
               ref={fileInputRef} 
               onChange={(e) => setFile(e.target.files?.[0] || null)} 
               className="hidden" 
-              accept=".pdf,.jpg,.jpeg,.png"
+              accept=".pdf,.jpg,.jpeg,.png,.webp"
             />
             <div 
               onClick={() => fileInputRef.current?.click()}
@@ -253,12 +300,12 @@ export default function DokumenPage() {
               <p className="text-sm font-medium text-on-surface text-center">
                 {file ? file.name : "Klik atau seret berkas ke sini"}
               </p>
-              <p className="text-xs text-outline text-center">PDF, JPG, PNG — Maks. 20 MB</p>
+              <p className="text-xs text-outline text-center">PDF, JPG, PNG, WEBP — Maks. 20 MB</p>
             </div>
 
             {/* Form Fields */}
             <div className="space-y-3">
-              <select value={docType} onChange={e => setDocType(e.target.value as DocType)} className="w-full bg-surface-container-high border border-white/5 rounded-xl py-3 px-4 text-sm text-on-surface font-body cursor-pointer">
+              <select value={docType} onChange={e => setDocType(e.target.value as DocType)} className="w-full bg-surface-container-high border border-white/5 rounded-xl py-3 px-4 text-sm text-on-surface font-body cursor-pointer text-left">
                 <option value="">Pilih Jenis Dokumen</option>
                 {(["KTP", "NPWP", "Kontrak", "SK", "Paklaring", "Ijazah", "Lainnya"] as DocType[]).map((t) => (
                   <option key={t} value={t}>
@@ -266,7 +313,7 @@ export default function DokumenPage() {
                   </option>
                 ))}
               </select>
-              <select value={empId} onChange={e => setEmpId(e.target.value)} className="w-full bg-surface-container-high border border-white/5 rounded-xl py-3 px-4 text-sm text-on-surface font-body cursor-pointer">
+              <select value={empId} onChange={e => setEmpId(e.target.value)} className="w-full bg-surface-container-high border border-white/5 rounded-xl py-3 px-4 text-sm text-on-surface font-body cursor-pointer text-left">
                 <option value="">Pilih Karyawan</option>
                 {employees.map(e => (
                   <option key={e.id} value={e.id}>{e.nama}</option>

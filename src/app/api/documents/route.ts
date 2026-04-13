@@ -5,7 +5,7 @@ export async function GET() {
   try {
     const { data, error } = await supabase
       .from("documents")
-      .select("*, employees(nama_lengkap, foto_url)")
+      .select("*, employees(nama_lengkap, foto_url, nip, posisi, sektor, status)")
       .order("upload_date", { ascending: false });
 
     if (error) throw error;
@@ -19,6 +19,11 @@ export async function GET() {
       filePath: d.file_path,
       ownerName: d.employees?.nama_lengkap,
       ownerAvatar: d.employees?.foto_url,
+      nip: d.employees?.nip || "-",
+      posisi: d.employees?.posisi || "-",
+      sektor: d.employees?.sektor || "-",
+      status: d.employees?.status || "Aktif",
+      employeeId: d.employee_id
     }));
 
     return NextResponse.json({ success: true, data: formattedData });

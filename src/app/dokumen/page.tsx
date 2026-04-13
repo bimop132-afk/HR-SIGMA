@@ -17,6 +17,11 @@ interface DocumentItem {
   uploadDate: string;
   icon: string;
   filePath: string;
+  nip?: string;
+  posisi?: string;
+  sektor?: string;
+  status?: string;
+  employeeId?: number;
 }
 
 const formatSize = (bytes: number) => {
@@ -65,7 +70,12 @@ export default function DokumenPage() {
             ...item,
             size: formatSize(item.size),
             icon: getIcon(item.type),
-            ownerName: item.ownerName || "Tidak Diketahui"
+            ownerName: item.ownerName || "Tidak Diketahui",
+            nip: item.nip,
+            posisi: item.posisi,
+            sektor: item.sektor,
+            status: item.status,
+            employeeId: item.employeeId
           }));
           setDocuments(formatted);
         }
@@ -213,30 +223,72 @@ export default function DokumenPage() {
             </div>
           ) : (
             <div className="space-y-12">
-              {Object.entries(groupedDocuments).map(([ownerName, docs]) => (
-                <div key={ownerName} className="space-y-4 text-left">
-                  <div className="flex items-center gap-4 px-2">
-                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center text-primary border border-white/5 shadow-inner">
-                      <span className="material-symbols-outlined text-2xl">person</span>
-                    </div>
-                    <div>
-                      <h4 className="font-headline font-bold text-on-surface text-lg tracking-tight">{ownerName}</h4>
-                      <div className="flex items-center gap-2">
-                        <p className="text-[10px] text-outline uppercase tracking-widest font-black">{docs.length} Dokumen Tersimpan</p>
+              {Object.entries(groupedDocuments).map(([ownerName, docs]) => {
+                const emp = docs[0];
+                const initials = ownerName.split(" ").map(n => n[0]).join("").substring(0, 2).toUpperCase();
+                const isActive = emp.status !== "Non-Aktif";
+                
+                return (
+                  <div key={ownerName} className="glass-card border border-white/10 rounded-[2rem] overflow-hidden relative group transition-all duration-300 hover:border-white/20">
+                    {/* Employee Card Header */}
+                    <div className="p-5 md:p-6 border-b border-white/5 flex flex-col md:flex-row md:items-center justify-between gap-5 bg-surface/50">
+                      
+                      <div className="flex gap-4 items-center pl-1">
+                        {emp.ownerAvatar ? (
+                          <img src={emp.ownerAvatar} alt={ownerName} className="w-16 h-16 rounded-2xl object-cover ring-1 ring-white/10 shadow-lg" />
+                        ) : (
+                          <div className={`w-16 h-16 rounded-2xl flex items-center justify-center font-bold text-xl bg-gradient-to-br from-surface-container-high to-surface-container-highest text-on-surface ring-1 ring-white/5 shadow-lg`}>
+                            {initials}
+                          </div>
+                        )}
+                        <div>
+                          <h3 className="font-headline font-extrabold text-xl text-on-surface tracking-tight mb-1">{ownerName}</h3>
+                          <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                            <span className="text-sm font-bold text-on-surface-variant font-mono bg-surface-container px-2 py-0.5 rounded-md">
+                              {emp.nip || "-"}
+                            </span>
+                            <span className="w-1 h-1 rounded-full bg-outline/50 hidden sm:block"></span>
+                            <span className="text-secondary text-sm font-semibold">{emp.posisi || "-"}</span>
+                          </div>
+                        </div>
                       </div>
+                      
+                      <div className="flex items-center gap-5 sm:gap-8 bg-surface-container-low px-6 py-4 rounded-2xl border border-white/5">
+                        <div className="flex gap-6 sm:gap-8">
+                          <div className="text-right">
+                            <p className="text-[10px] text-outline uppercase tracking-widest font-black mb-1">Sektor</p>
+                            <p className="text-sm font-bold text-on-surface">{emp.sektor || "-"}</p>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-[10px] text-outline uppercase tracking-widest font-black mb-1">Status</p>
+                            <span className={`inline-flex items-center text-xs font-bold leading-none ${isActive ? 'text-primary' : 'text-error'}`}>
+                               <span className={`w-1.5 h-1.5 rounded-full mr-2 ${isActive ? 'bg-primary shadow-[0_0_8px_rgba(var(--primary),0.8)]' : 'bg-error shadow-[0_0_8px_rgba(var(--error),0.8)]'}`}></span>
+                               {emp.status || "Aktif"}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="h-10 w-px bg-white/10 hidden sm:block"></div>
+                        <div className="text-center text-primary">
+                          <p className="text-2xl font-black leading-none">{docs.length}</p>
+                          <p className="text-[9px] uppercase font-black tracking-[0.2em]">Berkas</p>
+                        </div>
+                      </div>
+
+                    </div>
+                    
+                    {/* Documents List */}
+                    <div className="p-5 md:p-6 bg-surface-container-highest/20 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                      {docs.map((doc) => (
+                        <DocumentCard 
+                          key={doc.id} 
+                          doc={doc} 
+                          onView={() => setSelectedDoc(doc)}
+                        />
+                      ))}
                     </div>
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5 pl-2">
-                    {docs.map((doc) => (
-                      <DocumentCard 
-                        key={doc.id} 
-                        doc={doc} 
-                        onView={() => setSelectedDoc(doc)}
-                      />
-                    ))}
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </section>

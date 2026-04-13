@@ -81,26 +81,47 @@ export async function POST(request: NextRequest) {
 
     if (reError) throw reError;
 
-    // Create default clearance items
+    // Create granular default clearance items
     const defaultClearanceItems = [
-      {
-        resignation_id: newResignation.id,
-        nama_item: "Pengembalian ID Card",
-        deskripsi: "Diserahkan ke Kantor",
-      },
-      {
-        resignation_id: newResignation.id,
-        nama_item: "Alat Pelindung Diri (APD)",
-        deskripsi: "Seragam, Sepatu, Haircup, Apron",
-      },
-      {
-        resignation_id: newResignation.id,
-        nama_item: "Serah Terima Tugas",
-        deskripsi: "Koordinasi dengan Tim",
-      },
+      { resignation_id: newResignation.id, nama_item: "ID Card", deskripsi: "Diserahkan ke Kantor" },
+      { resignation_id: newResignation.id, nama_item: "Seragam", deskripsi: "Kondisi bersih dan rapi" },
+      { resignation_id: newResignation.id, nama_item: "Sepatu", deskripsi: "Dikembalikan (Jika Ada)" },
+      { resignation_id: newResignation.id, nama_item: "Haircup", deskripsi: "Dikembalikan (Jika Ada)" },
+      { resignation_id: newResignation.id, nama_item: "Apron", deskripsi: "Dikembalikan (Jika Ada)" },
+      { resignation_id: newResignation.id, nama_item: "Serah Terima Tugas", deskripsi: "Koordinasi dengan Tim" },
     ];
 
     await supabase.from("clearance_items").insert(defaultClearanceItems);
+
+    // Auto-create penalties for specific resignation types
+    let autoPenaltyAmount = 0;
+    let autoPenaltyReason = "";
+    
+    if (parsed.data.tipe === "MENDADAK") {
+      autoPenaltyAmount = 125000;
+      autoPenaltyReason = "RESIGN MENDADAK";
+    } else if (parsed.data.tipe === "TANPA_BERITA") {
+      autoPenaltyAmount = 550000;
+      autoPenaltyReason = "MUNDUR TANPA BERITA";
+    }
+
+    if (autoPenaltyAmount > 0) {
+      await supabase.from("penalties").insert({
+        employee_id: parsed.data.employeeId,
+        alasan: autoPenaltyReason,
+        jumlah: autoPenaltyAmount,
+        status: "BELUM_BAYAR",
+        tanggal_denda: parsed.data.tanggalResign,
+      });
+      
+      // Log penalty auto-creation
+      await supabase.from("activity_logs").insert({
+        employee_id: parsed.data.employeeId,
+        tipe_aktivitas: "PENALTY",
+        deskripsi: `Pinalti Diterbitkan Otomatis`,
+        detail: `${autoPenaltyReason} • Rp ${autoPenaltyAmount.toLocaleString("id-ID")}`,
+      });
+    }
 
     // Log activity
     await supabase.from("activity_logs").insert({

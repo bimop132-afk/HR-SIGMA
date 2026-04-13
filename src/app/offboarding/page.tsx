@@ -14,7 +14,7 @@ function getInitials(name: string) {
 export default async function OffboardingPage() {
   const { data: rawResignations, error } = await supabase
     .from("resignations")
-    .select("*, employees(nama_lengkap, nip)")
+    .select("*, employees(nama_lengkap, nip), clearance_items(*)")
     .order("tanggal_resign", { ascending: false });
 
   if (error) {
@@ -30,6 +30,7 @@ export default async function OffboardingPage() {
       date: r.tanggal_resign,
       type: r.tipe,
       statusClearance: r.status_clearance,
+      clearanceItems: r.clearance_items || [],
       initials: getInitials(employeeName),
       avatarColor: r.status_clearance === "SELESAI" ? "bg-surface-variant text-on-surface-variant" : "bg-primary-container text-on-primary-container"
     };
@@ -48,8 +49,10 @@ export default async function OffboardingPage() {
           <ResignHistoryTable data={historyData} />
           {activeResignation ? (
             <ClearanceChecklistCard 
+              resignationId={activeResignation.id}
               name={activeResignation.employeeName} 
               status={activeResignation.statusClearance}
+              items={activeResignation.clearanceItems.sort((a: any, b: any) => a.id - b.id)}
             />
           ) : (
              <div className="glass rounded-[2rem] p-8 border border-white/5 text-center text-on-surface-variant">

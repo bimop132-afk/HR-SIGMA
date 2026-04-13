@@ -136,6 +136,56 @@ export async function POST(request: NextRequest) {
       detail: `Sektor ${newEmployee.sektor} • ${jalurMasuk}`,
     });
 
+    // Auto-register documents in "documents" table for the Dokumen page
+    const documentsToInsert = [];
+    const getFileName = (url: string, fallbackPrefix: string) => {
+      try {
+        const decoded = decodeURIComponent(url);
+        const namePart = decoded.split('/').pop()?.split('?')[0]; // exclude query params if any
+        return namePart || `${fallbackPrefix}_${newEmployee.nama_lengkap.replace(/\s+/g, '_')}`;
+      } catch {
+        return `${fallbackPrefix}_${newEmployee.nama_lengkap.replace(/\s+/g, '_')}`;
+      }
+    };
+
+    if (rest.fotoKtpUrl) {
+      documentsToInsert.push({
+        employee_id: newEmployee.id,
+        file_name: getFileName(rest.fotoKtpUrl, "KTP"),
+        tipe: "KTP",
+        file_path: rest.fotoKtpUrl,
+        file_size: 0,
+        upload_date: new Date().toISOString().split("T")[0],
+      });
+    }
+    
+    if (rest.fotoKkUrl) {
+      documentsToInsert.push({
+        employee_id: newEmployee.id,
+        file_name: getFileName(rest.fotoKkUrl, "KK"),
+        tipe: "Lainnya", // mapped as "Lainnya" because KK isn't an explicit type in Dokumen page
+        file_path: rest.fotoKkUrl,
+        file_size: 0,
+        upload_date: new Date().toISOString().split("T")[0],
+      });
+    }
+    
+    if (rest.fotoIjazahUrl) {
+      documentsToInsert.push({
+        employee_id: newEmployee.id,
+        file_name: getFileName(rest.fotoIjazahUrl, "IJAZAH"),
+        tipe: "Ijazah",
+        file_path: rest.fotoIjazahUrl,
+        file_size: 0,
+        upload_date: new Date().toISOString().split("T")[0],
+      });
+    }
+
+    if (documentsToInsert.length > 0) {
+      const { error: docErr } = await supabase.from("documents").insert(documentsToInsert);
+      if (docErr) console.error("Error inserting onboarding documents:", docErr);
+    }
+
     return NextResponse.json(
       { success: true, data: newEmployee },
       { status: 201 }

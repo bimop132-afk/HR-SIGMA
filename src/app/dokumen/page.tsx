@@ -64,7 +64,8 @@ export default function DokumenPage() {
           const formatted = d.data.map((item: any) => ({
             ...item,
             size: formatSize(item.size),
-            icon: getIcon(item.type)
+            icon: getIcon(item.type),
+            ownerName: item.ownerName || "Tidak Diketahui"
           }));
           setDocuments(formatted);
         }
@@ -77,7 +78,7 @@ export default function DokumenPage() {
       .then(r => r.json())
       .then(d => {
         if (d.success) {
-          setEmployees(d.data.map((e: any) => ({ id: e.id, nama: e.namaLengkap })));
+          setEmployees(d.data.map((e: any) => ({ id: e.id, nama: e.nama_lengkap || e.namaLengkap })));
         }
       });
   }, []);
@@ -116,21 +117,24 @@ export default function DokumenPage() {
   const filtered = useMemo(() => {
     return documents.filter((doc) => {
       const matchFilter = activeFilter === "Semua" || doc.type === activeFilter;
+      const ownerName = doc.ownerName || "Tidak Diketahui";
+      const fileName = doc.fileName || "";
       const matchSearch =
         searchQuery === "" ||
-        doc.ownerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        doc.fileName.toLowerCase().includes(searchQuery.toLowerCase());
+        ownerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        fileName.toLowerCase().includes(searchQuery.toLowerCase());
       return matchFilter && matchSearch;
     });
-  }, [activeFilter, searchQuery]);
+  }, [activeFilter, searchQuery, documents]);
 
   const groupedDocuments = useMemo(() => {
     const groups: Record<string, DocumentItem[]> = {};
     filtered.forEach(doc => {
-      if (!groups[doc.ownerName]) {
-        groups[doc.ownerName] = [];
+      const gName = doc.ownerName || "Tidak Diketahui";
+      if (!groups[gName]) {
+        groups[gName] = [];
       }
-      groups[doc.ownerName].push(doc);
+      groups[gName].push(doc);
     });
     // Sort by name
     return Object.fromEntries(

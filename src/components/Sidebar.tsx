@@ -79,6 +79,10 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
             <span className="material-symbols-outlined">description</span>
             <span className="font-manrope text-sm font-medium">Dokumen</span>
           </Link>
+          <Link href="/absensi" className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 ease-in-out cursor-pointer group ${pathname === "/absensi" ? "bg-red-500/10 text-red-500 border-l-4 border-red-600" : "text-zinc-400 hover:text-zinc-100 hover:bg-white/5"}`} onClick={() => window.innerWidth < 1024 && onClose()}>
+            <span className="material-symbols-outlined">date_range</span>
+            <span className="font-manrope text-sm font-medium">Rekap Absensi</span>
+          </Link>
           <Link href="/export" className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 ease-in-out cursor-pointer group ${pathname === "/export" ? "bg-red-500/10 text-red-500 border-l-4 border-red-600" : "text-zinc-400 hover:text-zinc-100 hover:bg-white/5"}`} onClick={() => window.innerWidth < 1024 && onClose()}>
             <span className="material-symbols-outlined">ios_share</span>
             <span className="font-manrope text-sm font-medium">Export Laporan</span>

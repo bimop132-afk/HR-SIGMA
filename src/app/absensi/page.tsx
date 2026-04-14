@@ -115,13 +115,14 @@ export default function AbsensiAutomatorPage() {
           for (let r = dateRowIdx + 1; r < rawData.length; r++) {
             const rowStrFull = rawData[r].map(c => c ? c.toString().toUpperCase().trim() : "").join(" ");
             
-            // Jika menemukan bagian tanda tangan atau catatan kaki, langsung berhenti membaca sheet ini
+            // Jika menemukan bagian tanda tangan, catatan kaki, ATAU judul rekap bulan lain berulang, langsung berhenti membaca sheet ini
             if (
               rowStrFull.includes("MENGETAHUI") || 
               rowStrFull.includes("DIBUAT OLEH") || 
               rowStrFull.includes("DISETUJUI") || 
               rowStrFull.includes("KEBERADAAN DI AREA") ||
-              rowStrFull.includes("DILARANG BERADA")
+              rowStrFull.includes("DILARANG BERADA") ||
+              rowStrFull.includes("PERIODE")
             ) {
               break;
             }

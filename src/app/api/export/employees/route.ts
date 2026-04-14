@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import { supabaseAdmin as supabase } from "@/lib/supabase";
 import * as XLSX from "xlsx";
 
-// GET /api/export/employees — Export employees to .xlsx
 export async function GET() {
   try {
     const { data, error } = await supabase
@@ -13,17 +12,17 @@ export async function GET() {
     if (error) throw error;
 
     const worksheetData = (data || []).map((emp: any, idx) => ({
-      No: idx + 1,
-      NIP: emp.nip,
-      "Nama Lengkap": emp.nama_lengkap,
-      NIK: emp.nik,
-      "Jalur Masuk": emp.jalur_masuk,
-      Posisi: emp.posisi,
-      Sektor: emp.sektor || "-",
-      Regu: emp.regu || "-",
-      Status: emp.status,
-      "Tanggal Masuk": emp.tanggal_masuk,
-      "Tanggal Keluar": emp.tanggal_keluar || "-",
+      "NO": idx + 1,
+      "NIK": emp.nik || "-",
+      "NIP": emp.nip || "-",
+      "NAMA KARYAWAN": emp.nama_lengkap || "-",
+      "POSISI": emp.posisi || "-",
+      "SEKTOR": emp.sektor || "-",
+      "REGU": emp.regu || "-",
+      "JALUR MASUK": emp.jalur_masuk || "-",
+      "STATUS KERJA": emp.status || "-",
+      "TANGGAL MASUK": emp.tanggal_masuk || "-",
+      "TANGGAL KELUAR": emp.tanggal_keluar || "-",
     }));
 
     const worksheet = XLSX.utils.json_to_sheet(worksheetData);
@@ -32,18 +31,24 @@ export async function GET() {
 
     // Set column widths
     worksheet["!cols"] = [
-      { wch: 5 },  // No
-      { wch: 12 }, // NIP
-      { wch: 25 }, // Nama
+      { wch: 5 },  // NO
       { wch: 18 }, // NIK
-      { wch: 10 }, // Jalur
-      { wch: 12 }, // Posisi
-      { wch: 8 },  // Sektor
-      { wch: 6 },  // Regu
-      { wch: 10 }, // Status
-      { wch: 14 }, // Tgl Masuk
-      { wch: 14 }, // Tgl Keluar
+      { wch: 12 }, // NIP
+      { wch: 25 }, // NAMA KARYAWAN
+      { wch: 15 }, // POSISI
+      { wch: 8 },  // SEKTOR
+      { wch: 8 },  // REGU
+      { wch: 15 }, // JALUR MASUK
+      { wch: 15 }, // STATUS KERJA
+      { wch: 15 }, // TANGGAL MASUK
+      { wch: 15 }, // TANGGAL KELUAR
     ];
+
+    const range = XLSX.utils.decode_range(worksheet['!ref'] || "A1:A1");
+    for (let c = range.s.c; c <= range.e.c; ++c) {
+      const cell = worksheet[XLSX.utils.encode_cell({r: 0, c: c})];
+      if (cell) cell.s = { font: { bold: true } };
+    }
 
     const buffer = XLSX.write(workbook, { type: "buffer", bookType: "xlsx" });
 

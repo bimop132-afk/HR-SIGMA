@@ -17,8 +17,8 @@ interface DownloadHistoryItem {
 
 export default function ExportPage() {
   const [selected, setSelected] = useState<"masuk" | "resign" | "denda" | "analitik" | null>("masuk");
-  const [startDate, setStartDate] = useState("2024-01-01");
-  const [endDate, setEndDate] = useState("2024-12-31");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
   const [isDownloading, setIsDownloading] = useState(false);
   const [history, setHistory] = useState<DownloadHistoryItem[]>([]);
 
@@ -27,6 +27,28 @@ export default function ExportPage() {
     if (saved) {
       setHistory(JSON.parse(saved));
     }
+
+    // Hitung tutup buku tanggal 25
+    const today = new Date();
+    let start, end;
+    if (today.getDate() <= 25) {
+      start = new Date(today.getFullYear(), today.getMonth() - 1, 26);
+      end = new Date(today.getFullYear(), today.getMonth(), 25);
+    } else {
+      start = new Date(today.getFullYear(), today.getMonth(), 26);
+      end = new Date(today.getFullYear(), today.getMonth() + 1, 25);
+    }
+    
+    const formatDate = (d: Date) => {
+      const ms = d.getMonth() + 1;
+      const m = ms < 10 ? `0${ms}` : ms;
+      const ds = d.getDate();
+      const dy = ds < 10 ? `0${ds}` : ds;
+      return `${d.getFullYear()}-${m}-${dy}`;
+    };
+    
+    setStartDate(formatDate(start));
+    setEndDate(formatDate(end));
   }, []);
 
   const handleDownload = () => {

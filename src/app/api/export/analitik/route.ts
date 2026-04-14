@@ -11,7 +11,7 @@ export async function GET(request: Request) {
 
     let query = supabase
       .from("activity_logs")
-      .select("*, employees(nip, nama_lengkap)")
+      .select("*, employees(nip, nik, nama_lengkap, posisi)")
       .order("created_at", { ascending: false });
 
     if (start) query = query.gte("created_at", `${start}T00:00:00`);
@@ -21,23 +21,36 @@ export async function GET(request: Request) {
     if (error) throw error;
 
     const worksheetData = (rawData || []).map((a: any, idx) => ({
-      No: idx + 1,
-      Waktu: format(new Date(a.created_at), "dd-MM-yyyy HH:mm"),
-      "Tipe Aktivitas": a.tipe_aktivitas,
-      "NIP Karyawan": a.employees ? a.employees.nip : "-",
-      "Nama Karyawan": a.employees ? a.employees.nama_lengkap : "-",
-      Deskripsi: a.deskripsi,
-      Detail: a.detail || "-",
+      "NO": idx + 1,
+      "WAKTU LOG": format(new Date(a.created_at), "dd-MM-yyyy HH:mm"),
+      "TIPE AKTIVITAS": a.tipe_aktivitas,
+      "NIK KARYAWAN": a.employees?.nik || "-",
+      "NAMA KARYAWAN": a.employees?.nama_lengkap || "-",
+      "POSISI": a.employees?.posisi || "-",
+      "DESKRIPSI": a.deskripsi || "-",
+      "DETAIL LENGKAP": a.detail || "-",
     }));
 
     const worksheet = XLSX.utils.json_to_sheet(worksheetData);
     const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Aktivitas SDM");
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Analitik SDM");
 
     worksheet["!cols"] = [
-      { wch: 5 }, { wch: 20 }, { wch: 18 }, { wch: 15 },
-      { wch: 25 }, { wch: 40 }, { wch: 30 }
+      { wch: 5 },  // NO
+      { wch: 20 }, // WAKTU LOG
+      { wch: 20 }, // TIPE AKTIVITAS
+      { wch: 18 }, // NIK KARYAWAN
+      { wch: 25 }, // NAMA KARYAWAN
+      { wch: 15 }, // POSISI
+      { wch: 40 }, // DESKRIPSI
+      { wch: 40 }, // DETAIL LENGKAP
     ];
+
+    const range = XLSX.utils.decode_range(worksheet['!ref'] || "A1:A1");
+    for (let c = range.s.c; c <= range.e.c; ++c) {
+      const cell = worksheet[XLSX.utils.encode_cell({r: 0, c: c})];
+      if (cell) cell.s = { font: { bold: true } };
+    }
 
     const buffer = XLSX.write(workbook, { type: "buffer", bookType: "xlsx" });
 

@@ -117,6 +117,7 @@ export const employeesRelations = relations(employees, ({ many }) => ({
   documents: many(documents),
   activityLogs: many(activityLogs),
   warningLetters: many(warningLetters),
+  depositInstallments: many(depositInstallments),
 }));
 
 // ---------- CONTRACTS ----------
@@ -284,6 +285,25 @@ export const activityLogs = pgTable("activity_logs", {
 export const activityLogsRelations = relations(activityLogs, ({ one }) => ({
   employee: one(employees, {
     fields: [activityLogs.employeeId],
+    references: [employees.id],
+  }),
+}));
+
+// ---------- DEPOSIT INSTALLMENTS ----------
+export const depositInstallments = pgTable("deposit_installments", {
+  id: serial("id").primaryKey(),
+  employeeId: integer("employee_id")
+    .notNull()
+    .references(() => employees.id, { onDelete: "cascade" }),
+  jumlah: integer("jumlah").notNull(), // dalam Rupiah (e.g. 166000)
+  keterangan: text("keterangan"), // e.g. "Potong Gaji Bulan 1"
+  tanggal: date("tanggal").notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const depositInstallmentsRelations = relations(depositInstallments, ({ one }) => ({
+  employee: one(employees, {
+    fields: [depositInstallments.employeeId],
     references: [employees.id],
   }),
 }));

@@ -178,6 +178,26 @@ export default function ResignModal() {
                   <option value="PHK">PHK</option>
                   <option value="TANPA_BERITA">Tanpa Berita</option>
                 </select>
+                
+                {tipe === "MENDADAK" && (
+                  <div className="mt-3 p-4 rounded-xl bg-error/10 border border-error/20 flex items-start gap-3">
+                    <span className="material-symbols-outlined text-error text-xl">warning</span>
+                    <div>
+                      <p className="text-sm font-bold text-error">Denda Resign Mendadak</p>
+                      <p className="text-xs text-error/80 mt-1">Sistem akan otomatis mencatat denda sebesar <b>Rp 125.000</b> ke dalam riwayat pinalti karyawan ini.</p>
+                    </div>
+                  </div>
+                )}
+
+                {tipe === "TANPA_BERITA" && (
+                  <div className="mt-3 p-4 rounded-xl bg-error/10 border border-error/20 flex items-start gap-3">
+                    <span className="material-symbols-outlined text-error text-xl">gavel</span>
+                    <div>
+                      <p className="text-sm font-bold text-error">Denda Mundur Tanpa Berita</p>
+                      <p className="text-xs text-error/80 mt-1">Sistem akan otomatis mencatat denda sebesar <b>Rp 550.000</b> ke dalam riwayat pinalti karyawan ini.</p>
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="space-y-2">

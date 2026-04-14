@@ -7,6 +7,7 @@ import { id as localeId } from "date-fns/locale";
 import Link from "next/link";
 import { calculateTenure } from "@/lib/utils";
 import EmployeeDocumentsSection from "@/components/karyawan/EmployeeDocumentsSection";
+import DepositInstallmentCard from "@/components/karyawan/DepositInstallmentCard";
 
 export const dynamic = "force-dynamic";
 
@@ -26,13 +27,15 @@ export default async function EmployeeProfilePage({ params }: { params: Promise<
     { data: contractsList, error: coError },
     { data: penaltiesList, error: peError },
     { data: documentsList, error: doError },
-    { data: spList, error: spError }
+    { data: spList, error: spError },
+    { data: depositList, error: deError }
   ] = await Promise.all([
     supabase.from("employees").select("*").eq("id", employeeId).single(),
     supabase.from("contracts").select("*").eq("employee_id", employeeId).order("tanggal_mulai", { ascending: false }),
     supabase.from("penalties").select("*").eq("employee_id", employeeId).order("tanggal_denda", { ascending: false }),
     supabase.from("documents").select("*").eq("employee_id", employeeId).order("upload_date", { ascending: false }),
-    supabase.from("warning_letters").select("*").eq("employee_id", employeeId).order("tanggal_terbit", { ascending: false })
+    supabase.from("warning_letters").select("*").eq("employee_id", employeeId).order("tanggal_terbit", { ascending: false }),
+    supabase.from("deposit_installments").select("*").eq("employee_id", employeeId).order("tanggal", { ascending: true })
   ]);
 
   if (emError || !employee) notFound();
@@ -241,6 +244,12 @@ export default async function EmployeeProfilePage({ params }: { params: Promise<
                   )}
                 </div>
               </div>
+
+              {/* Uang Jaminan Seragam */}
+              <DepositInstallmentCard 
+                employeeId={employee.id} 
+                installmentsInitial={depositList || []} 
+              />
 
               {/* Catatan Kedisiplinan */}
               <div className="glass-card rounded-3xl p-6 border border-white/5">

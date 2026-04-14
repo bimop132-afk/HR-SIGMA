@@ -8,13 +8,16 @@ export async function GET(request: Request) {
     const start = searchParams.get("start");
     const end = searchParams.get("end");
 
+    // Fetch all employees and their related data
     let query = supabase
-      .from("resignations")
-      .select("*, employees(*, penalties(*), apd_items(*)), clearance_items(*)")
-      .order("tanggal_resign", { ascending: false });
-
-    if (start) query = query.gte("tanggal_resign", start);
-    if (end) query = query.lte("tanggal_resign", end);
+      .from("employees")
+      .select(`
+        *, 
+        resignations(*, clearance_items(*)), 
+        penalties(*), 
+        deposit_installments(*)
+      `)
+      .order("created_at", { ascending: false });
 
     const { data: rawData, error } = await query;
     if (error) throw error;
@@ -26,44 +29,65 @@ export async function GET(request: Request) {
       maximumFractionDigits: 0,
     });
 
-    const worksheetData = (rawData || []).map((r: any, idx) => {
-      // Calculate Denda
-      const totalPenalti = (r.employees?.penalties || []).reduce(
-        (sum: number, p: any) => sum + (p.jumlah || 0), 0
-      );
-      
-      // Calculate APD Deposit
-      const uangJaminan = (r.employees?.apd_items || []).reduce(
-        (sum: number, a: any) => sum + (a.depositAmount || a.deposit_amount || 0), 0
-      );
+    let exportRows: any[] = [];
+    
+    (rawData || []).forEach((emp: any) => {
+      // Filter relations logically by date if provided
+      let validResignations = emp.resignations || [];
+      let validPenalties = emp.penalties || [];
 
-      // Collect Keterangan (HILANG/KOTOR clearance info)
-      const keteranganList = (r.clearance_items || [])
+      if (start && end) {
+        validResignations = validResignations.filter(
+          (r: any) => r.tanggal_resign >= start && r.tanggal_resign <= end
+        );
+        validPenalties = validPenalties.filter(
+          (p: any) => p.tanggal_denda >= start && p.tanggal_denda <= end
+        );
+      }
+
+      // ONLY include if they have a relevant resignation OR penalty in this period
+      if (validResignations.length === 0 && validPenalties.length === 0) return;
+
+      const totalPenalti = validPenalties.reduce((sum: number, p: any) => sum + (p.jumlah || 0), 0);
+      const uangJaminan = (emp.deposit_installments || []).reduce((sum: number, d: any) => sum + (d.jumlah || 0), 0);
+      
+      const latestResign = validResignations.length > 0 ? validResignations[0] : null;
+
+      // Extract details
+      const keteranganList = (latestResign?.clearance_items || [])
         .filter((c: any) => c.status === "HILANG" || c.status === "KOTOR")
         .map((c: any) => `${c.status} ${c.nama_item.toUpperCase()}`);
       
-      const keterangan = keteranganList.length > 0 ? keteranganList.join(", ") : "-";
+      let keterangan = keteranganList.length > 0 ? keteranganList.join(", ") : "";
 
-      return {
-        "NO": idx + 1,
-        "NIK": r.employees?.nik || "-",
-        "NAMA KARYAWAN": r.employees?.nama_lengkap || "Unknown",
-        "SEKTOR": r.employees?.sektor || "-",
-        "REGU": r.employees?.regu || "-",
-        "TANGGAL MASUK": r.employees?.tanggal_masuk || "-",
-        "TANGGAL RESIGN": r.tanggal_resign || "-",
-        "SIZE SEPATU": r.employees?.sepatu_size || "-",
+      // If active employee but has penalties, state reasons briefly
+      if (!latestResign && validPenalties.length > 0) {
+        keterangan = validPenalties.map((p: any) => p.alasan).join(", ");
+      }
+
+      exportRows.push({
+        "NO": 0, // dynamically set later
+        "NIK": emp.nik || "-",
+        "NAMA KARYAWAN": emp.nama_lengkap || "Unknown",
+        "SEKTOR": emp.sektor || "-",
+        "REGU": emp.regu || "-",
+        "TANGGAL MASUK": emp.tanggal_masuk || "-",
+        "TANGGAL RESIGN": latestResign?.tanggal_resign || "-",
+        "SIZE SEPATU": emp.sepatu_size || "-",
         "UANG JAMINAN": uangJaminan > 0 ? formatter.format(uangJaminan) : "Rp -",
         "DENDA PENALTI": totalPenalti > 0 ? formatter.format(totalPenalti) : "Rp -",
-        "EMAIL": r.employees?.email_aktif || "-",
-        "STATUS": r.tipe ? `RESIGN ${r.tipe === 'NORMAL' ? '' : r.tipe}`.trim() : "RESIGN",
-        "KETERANGAN": keterangan,
-      };
+        "EMAIL": emp.email_aktif || "-",
+        "STATUS": latestResign ? `RESIGN ${latestResign.tipe === 'NORMAL' ? '' : latestResign.tipe}`.trim() : `AKTIF (DENDA)`,
+        "KETERANGAN": keterangan || "-",
+      });
     });
 
-    const worksheet = XLSX.utils.json_to_sheet(worksheetData);
+    // Re-index
+    exportRows = exportRows.map((row, idx) => ({ ...row, "NO": idx + 1 }));
+
+    const worksheet = XLSX.utils.json_to_sheet(exportRows);
     const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Resign");
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Resign_Denda");
 
     worksheet["!cols"] = [
       { wch: 5 },  // NO
@@ -81,13 +105,10 @@ export async function GET(request: Request) {
       { wch: 30 }, // KETERANGAN
     ];
 
-    // Bold header row styling for Excel (using standard sheet manipulation)
     const range = XLSX.utils.decode_range(worksheet['!ref'] || "A1:A1");
     for (let c = range.s.c; c <= range.e.c; ++c) {
       const cell = worksheet[XLSX.utils.encode_cell({r: 0, c: c})];
-      if (cell) {
-        cell.s = { font: { bold: true } };
-      }
+      if (cell) cell.s = { font: { bold: true } };
     }
 
     const buffer = XLSX.write(workbook, { type: "buffer", bookType: "xlsx" });
@@ -95,7 +116,7 @@ export async function GET(request: Request) {
     return new NextResponse(buffer, {
       headers: {
         "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        "Content-Disposition": `attachment; filename="data-resign-${new Date().toISOString().split("T")[0]}.xlsx"`,
+        "Content-Disposition": `attachment; filename="data-resign-denda-${new Date().toISOString().split("T")[0]}.xlsx"`,
       },
     });
   } catch (error) {

@@ -113,6 +113,19 @@ export default function AbsensiAutomatorPage() {
           // Read data rows starting from dateRowIdx + 1
           let emptyEncountered = 0;
           for (let r = dateRowIdx + 1; r < rawData.length; r++) {
+            const rowStrFull = rawData[r].map(c => c ? c.toString().toUpperCase().trim() : "").join(" ");
+            
+            // Jika menemukan bagian tanda tangan atau catatan kaki, langsung berhenti membaca sheet ini
+            if (
+              rowStrFull.includes("MENGETAHUI") || 
+              rowStrFull.includes("DIBUAT OLEH") || 
+              rowStrFull.includes("DISETUJUI") || 
+              rowStrFull.includes("KEBERADAAN DI AREA") ||
+              rowStrFull.includes("DILARANG BERADA")
+            ) {
+              break;
+            }
+
             const row = rawData[r];
             const nik = row[1]?.toString().trim(); // Column B
             const nama = row[2]?.toString().trim(); // Column C

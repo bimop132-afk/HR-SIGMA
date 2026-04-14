@@ -126,8 +126,14 @@ export default function AbsensiAutomatorPage() {
               emptyEncountered = 0; // reset
             }
 
+            // Abaikan baris yang merupakan header tabel dari halaman/sheet lain
+            if (nik?.toUpperCase() === 'NIK' || nama?.toUpperCase() === 'NAMA' || nama?.toUpperCase() === 'NAMA KARYAWAN') {
+              continue;
+            }
+
             // Only process if both NIK and NAMA exist
             if (nik && nama) {
+
               const area = row[3]?.toString() || "";
               const sektor = row[4]?.toString() || "";
               const regu = row[5]?.toString() || "";

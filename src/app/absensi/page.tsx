@@ -156,7 +156,7 @@ export default function AbsensiAutomatorPage() {
               }
 
               if (missingDates.length > 0) {
-                hasFatalError = true;
+                // Changed from fatal to just a stark warning so download continues
                 currentLogs.push({ 
                   sheet: `${file.name} - ${sheetName}`, 
                   error: `${nama} (${nik}) memiliki sel kosong pada tanggal: ${missingDates.join(", ")}`, 
@@ -192,15 +192,13 @@ export default function AbsensiAutomatorPage() {
 
       setLogs(currentLogs);
 
-      if (hasFatalError) {
-        setIsLocked(true);
-        toast.error("Proses dihentikan karena ditemukan sel absen yang bolong/lupa diisi!");
-        return;
-      }
-
       if (allSektorData.length === 0 && allPelaksanaData.length === 0) {
         toast.error("Tidak ada data valid yang berhasil diekstrak!");
         return;
+      }
+      
+      if (currentLogs.some(log => log.type === 'fatal')) {
+        toast.error("File diunduh, namun perhatikan daftar Peringatan Sel Kosong!");
       }
 
       // Re-index
@@ -328,19 +326,17 @@ export default function AbsensiAutomatorPage() {
             <button
               onClick={processExcel}
               disabled={isProcessing}
-              className={`w-full py-4 rounded-2xl font-black text-lg transition-transform hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2 cursor-pointer ${
-                isLocked ? "bg-surface-variant text-outline cursor-not-allowed" : "liquid-light text-on-primary-fixed shadow-lg shadow-primary/20"
-              }`}
+              className={`w-full py-4 rounded-2xl font-black text-lg transition-transform hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2 cursor-pointer liquid-light text-on-primary-fixed shadow-lg shadow-primary/20`}
             >
               <span className="material-symbols-outlined">bolt</span>
-              {isProcessing ? "Membakar Data..." : isLocked ? "DICKUNCI (BERISI ERROR)" : "Bakar Master Data"}
+              {isProcessing ? "Membakar Data..." : "Bakar Master Data"}
             </button>
             {isLocked && (
               <button 
                 onClick={() => { setIsLocked(false); setLogs([]); }}
                 className="w-full mt-2 py-3 bg-surface-container hover:bg-surface-container-high rounded-xl text-primary text-sm font-bold cursor-pointer transition-colors"
                 >
-                Reset Status Kunci
+                Reset Status
               </button>
             )}
           </div>

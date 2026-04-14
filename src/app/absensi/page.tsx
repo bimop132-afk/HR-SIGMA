@@ -63,9 +63,10 @@ export default function AbsensiAutomatorPage() {
           const isPelaksana = sheetName.toUpperCase().includes("PELAKSANA") || sheetName.toUpperCase().includes("LEADER");
           
           const worksheet = workbook.Sheets[sheetName];
-          const rawData = XLSX.utils.sheet_to_json<any[][]>(worksheet, { header: 1, defval: "" });
+          // Gunakan raw: false agar tanggal bulan (misal "April 2026") terbaca sebagai teks, bukan angka serial Excel 45000+
+          const rawData = XLSX.utils.sheet_to_json<any[][]>(worksheet, { header: 1, defval: "", raw: false });
 
-          // 1. Find Anchor Row
+          // 1. Find Anchor Row (Mencari Teks Bulan)
           let anchorRowIdx = -1;
           for (let r = 0; r < rawData.length; r++) {
             const rowStr = rawData[r].map(c => c ? c.toString().toUpperCase() : "").join(" ");
@@ -75,9 +76,20 @@ export default function AbsensiAutomatorPage() {
             }
           }
 
+          // Fallback: Jika tidak ketemu teks bulannya, kita coba cari baris yang isinya angka tanggal 26, 27, 28
           if (anchorRowIdx === -1) {
-            currentLogs.push({ sheet: `${file.name} - ${sheetName}`, error: `Jangkar bulan '${targetMonth}' tidak ditemukan. Melewati sheet ini.`, type: 'warning' });
-            continue; // Skip sheet if anchor not found
+            for (let r = 0; r < rawData.length; r++) {
+              const rowStr = rawData[r].map(c => c ? c.toString().trim() : "").join(",");
+              if (rowStr.includes("26") && rowStr.includes("27") && rowStr.includes("28") && rowStr.includes("25")) {
+                 anchorRowIdx = r > 0 ? r - 1 : r; // Set anchor to the row above dates (or current)
+                 break;
+              }
+            }
+          }
+
+          if (anchorRowIdx === -1) {
+            currentLogs.push({ sheet: `${file.name} - ${sheetName}`, error: `Jangkar '${targetMonth}' atau deret tanggal absen tidak ditemukan. Lembar ini dilewati.`, type: 'warning' });
+            continue; // Skip sheet if absolutely no anchor/dates found
           }
 
           // In the image, Month string is Row 5. The dates (26, 27..) are Row 6. Data starts row 7.

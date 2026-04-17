@@ -50,7 +50,7 @@ export default function EmployeeCard({ employee }: { employee: Employee }) {
           {menuOpen && (
             <>
               <div className="fixed inset-0 z-30" onClick={(e) => { e.stopPropagation(); setMenuOpen(false); }}></div>
-              <div className="absolute right-0 top-12 w-48 glass border border-white/10 rounded-2xl shadow-xl shadow-black/50 py-2 z-40 flex flex-col text-left animate-in fade-in zoom-in-95">
+              <div className="absolute right-0 top-12 w-48 bg-surface-container-highest backdrop-blur-2xl border border-white/10 rounded-2xl shadow-2xl shadow-black/80 py-2 z-40 flex flex-col text-left animate-in fade-in zoom-in-95">
                 <button 
                   onClick={(e) => { e.stopPropagation(); setMenuOpen(false); router.push(`/karyawan/${employee.id}`); }}
                   className="px-5 py-3 text-sm font-medium transition-colors hover:bg-white/5 text-on-surface flex items-center gap-3 text-left w-full cursor-pointer"

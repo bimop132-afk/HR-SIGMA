@@ -106,7 +106,7 @@ export default function DocumentCard({ doc, onView }: { doc: DocumentData; onVie
         {menuOpen && (
           <>
             <div className="fixed inset-0 z-10" onClick={(e) => { e.stopPropagation(); setMenuOpen(false); }} />
-            <div className="absolute right-5 top-14 z-20 glass border border-white/10 rounded-2xl shadow-xl shadow-black/40 py-2 min-w-[160px] overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+            <div className="absolute right-5 top-14 z-20 bg-surface-container-highest backdrop-blur-2xl border border-white/10 rounded-2xl shadow-2xl shadow-black/80 py-2 min-w-[160px] overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
               {["Lihat", "Unduh", "Bagikan", "Ganti Nama", "Hapus"].map((action) => (
                 <button
                   key={action}

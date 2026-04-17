@@ -18,7 +18,7 @@ export default function PenaltyFilters() {
           <span className="material-symbols-outlined text-[18px]">expand_more</span>
         </button>
         {openFilter === "status" && (
-          <div className="absolute top-12 left-0 w-48 glass rounded-2xl border border-white/10 p-2 shadow-xl z-50">
+          <div className="absolute top-12 left-0 w-48 bg-surface-container-highest backdrop-blur-2xl rounded-2xl border border-white/10 p-2 shadow-2xl shadow-black/80 z-50">
             {["Semua Status", "Belum Bayar", "Lunas", "Cicilan"].map(opt => (
               <button 
                 key={opt}
@@ -41,7 +41,7 @@ export default function PenaltyFilters() {
           <span className="material-symbols-outlined text-[18px]">expand_more</span>
         </button>
         {openFilter === "type" && (
-          <div className="absolute top-12 left-0 w-48 glass rounded-2xl border border-white/10 p-2 shadow-xl z-50">
+          <div className="absolute top-12 left-0 w-48 bg-surface-container-highest backdrop-blur-2xl rounded-2xl border border-white/10 p-2 shadow-2xl shadow-black/80 z-50">
             {["Semua Tipe", "Denda Hilang", "Denda Rusak", "Lainnya"].map(opt => (
               <button 
                 key={opt}

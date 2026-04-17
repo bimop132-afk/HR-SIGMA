@@ -108,7 +108,7 @@ export default function ResignModal() {
       <motion.button 
         layoutId="resign-action"
         onClick={openModal}
-        className="flex items-center gap-2 px-6 py-4 bg-gradient-to-br from-primary to-primary-container text-on-primary font-bold rounded-2xl shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all cursor-pointer"
+        className={`flex items-center gap-2 px-6 py-4 bg-gradient-to-br from-primary to-primary-container text-on-primary font-bold rounded-2xl shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all cursor-pointer ${isOpen ? 'opacity-0' : 'opacity-100'}`}
       >
         <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>add_circle</span>
         Proses Resign Baru

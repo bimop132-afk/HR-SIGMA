@@ -310,7 +310,7 @@ export default function DokumenPage() {
       <motion.button
         layoutId="upload-doc-action"
         onClick={() => setShowUploadModal(true)}
-        className="fixed bottom-24 right-6 w-14 h-14 rounded-2xl liquid-light text-on-primary-fixed shadow-lg shadow-primary/30 flex items-center justify-center active:scale-90 transition-all duration-150 z-50 hover:shadow-xl hover:shadow-primary/40"
+        className={`fixed bottom-24 right-6 w-14 h-14 rounded-2xl liquid-light text-on-primary-fixed shadow-lg shadow-primary/30 flex items-center justify-center active:scale-90 transition-all duration-150 z-50 hover:shadow-xl hover:shadow-primary/40 ${showUploadModal ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
         title="Unggah Dokumen Baru"
       >
         <span className="material-symbols-outlined text-2xl" style={{ fontVariationSettings: "'FILL' 1" }}>

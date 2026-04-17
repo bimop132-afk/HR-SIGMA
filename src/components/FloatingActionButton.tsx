@@ -80,7 +80,7 @@ export default function FloatingActionButton() {
       <motion.button 
         layoutId="add-employee-action"
         onClick={openModal}
-        className="fixed bottom-28 right-6 w-16 h-16 bg-primary text-on-primary rounded-2xl shadow-[0_10px_30px_rgba(202,190,255,0.3)] flex items-center justify-center active:scale-90 transition-all z-40 hover:brightness-110"
+        className={`fixed bottom-28 right-6 w-16 h-16 bg-primary text-on-primary rounded-2xl shadow-[0_10px_30px_rgba(202,190,255,0.3)] flex items-center justify-center active:scale-90 transition-all z-40 hover:brightness-110 ${isOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
         title="Input Karyawan Lama"
       >
         <span className="material-symbols-outlined font-bold text-3xl">add</span>

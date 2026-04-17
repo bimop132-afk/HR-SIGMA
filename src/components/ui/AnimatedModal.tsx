@@ -46,11 +46,11 @@ export default function AnimatedModal({ isOpen, onClose, children, className = "
           <motion.div
             layoutId={layoutId}
             layout
-            initial={{ opacity: 0, scale: 0.95, y: 10 }}
+            initial={{ opacity: 0, scale: 0.9, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 10 }}
+            exit={{ opacity: 0, scale: 0.9, y: 20 }}
             transition={transitionSettings}
-            className={`relative w-full max-h-[90vh] overflow-y-auto hide-scrollbar z-10 ${className}`}
+            className={`relative z-10 max-h-[90vh] overflow-y-auto hide-scrollbar ${className}`}
             onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside
           >
             {children}

@@ -103,7 +103,7 @@ export default function PenaltyModal({ onSuccess }: { onSuccess: () => void }) {
       <motion.button
         layoutId="penalty-action"
         onClick={openModal}
-        className="fixed bottom-24 lg:bottom-10 right-6 liquid-light text-on-primary-fixed w-14 h-14 rounded-2xl shadow-2xl shadow-red-500/50 flex items-center justify-center active:scale-90 transition-transform duration-150 z-50 cursor-pointer hover:brightness-110"
+        className={`fixed bottom-24 lg:bottom-10 right-6 liquid-light text-on-primary-fixed w-14 h-14 rounded-2xl shadow-2xl shadow-red-500/50 flex items-center justify-center active:scale-90 transition-all duration-150 z-50 cursor-pointer hover:brightness-110 ${isOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
       >
         <span className="material-symbols-outlined font-bold text-3xl">add</span>
       </motion.button>

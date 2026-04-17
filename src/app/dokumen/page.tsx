@@ -307,16 +307,22 @@ export default function DokumenPage() {
       )}
 
       {/* Upload FAB */}
-      <motion.button
-        layoutId="upload-doc-action"
+      <button
         onClick={() => setShowUploadModal(true)}
-        className={`fixed bottom-24 right-6 w-14 h-14 rounded-2xl liquid-light text-on-primary-fixed shadow-lg shadow-primary/30 flex items-center justify-center active:scale-90 transition-all duration-150 z-50 hover:shadow-xl hover:shadow-primary/40 ${showUploadModal ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
+        className="fixed bottom-24 right-6 w-14 h-14 rounded-2xl shadow-lg shadow-primary/30 flex items-center justify-center transition-all duration-150 z-50 hover:shadow-xl hover:shadow-primary/40 overflow-hidden group"
         title="Unggah Dokumen Baru"
       >
-        <span className="material-symbols-outlined text-2xl" style={{ fontVariationSettings: "'FILL' 1" }}>
-          add
-        </span>
-      </motion.button>
+        <motion.div 
+          layoutId="upload-doc-action" 
+          className="absolute inset-0 liquid-light z-0"
+          style={{ opacity: showUploadModal ? 0 : 1 }}
+        />
+        <div className={`relative z-10 text-on-primary-fixed transition-opacity duration-300 ${showUploadModal ? 'opacity-0' : 'opacity-100'}`}>
+          <span className="material-symbols-outlined text-2xl" style={{ fontVariationSettings: "'FILL' 1" }}>
+            add
+          </span>
+        </div>
+      </button>
 
       {/* Upload Modal */}
       <AnimatedModal isOpen={showUploadModal} onClose={() => setShowUploadModal(false)} layoutId="upload-doc-action">

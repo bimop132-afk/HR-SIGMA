@@ -105,14 +105,23 @@ export default function ResignModal() {
 
   return (
     <>
-      <motion.button 
-        layoutId="resign-action"
+      <button 
         onClick={openModal}
-        className={`flex items-center gap-2 px-6 py-4 bg-gradient-to-br from-primary to-primary-container text-on-primary font-bold rounded-2xl shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all cursor-pointer ${isOpen ? 'opacity-0' : 'opacity-100'}`}
+        className="group relative flex items-center gap-2 px-6 py-4 font-bold rounded-2xl shadow-lg transition-all cursor-pointer overflow-hidden"
       >
-        <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>add_circle</span>
-        Proses Resign Baru
-      </motion.button>
+        {/* The "Seed" for the morph animation */}
+        <motion.div 
+          layoutId="resign-action" 
+          className="absolute inset-0 bg-gradient-to-br from-primary to-primary-container z-0"
+          style={{ opacity: isOpen ? 0 : 1 }}
+        />
+        
+        {/* Static content that won't stretch */}
+        <div className={`relative z-10 flex items-center gap-2 text-on-primary transition-opacity duration-300 ${isOpen ? 'opacity-0' : 'opacity-100'}`}>
+          <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>add_circle</span>
+          <span>Proses Resign Baru</span>
+        </div>
+      </button>
 
       <AnimatedModal isOpen={isOpen} onClose={closeModal} layoutId="resign-action">
           <div className="bg-surface relative z-10 w-full max-w-lg rounded-3xl shadow-2xl p-6 md:p-8 border border-white/10 flex flex-col max-h-[90vh]">

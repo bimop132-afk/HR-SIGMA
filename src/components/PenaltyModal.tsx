@@ -100,13 +100,19 @@ export default function PenaltyModal({ onSuccess }: { onSuccess: () => void }) {
 
   return (
     <>
-      <motion.button
-        layoutId="penalty-action"
+      <button
         onClick={openModal}
-        className={`fixed bottom-24 lg:bottom-10 right-6 liquid-light text-on-primary-fixed w-14 h-14 rounded-2xl shadow-2xl shadow-red-500/50 flex items-center justify-center active:scale-90 transition-all duration-150 z-50 cursor-pointer hover:brightness-110 ${isOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
+        className="fixed bottom-24 lg:bottom-10 right-6 w-14 h-14 rounded-2xl shadow-2xl shadow-red-500/50 flex items-center justify-center transition-all z-50 cursor-pointer overflow-hidden group"
       >
-        <span className="material-symbols-outlined font-bold text-3xl">add</span>
-      </motion.button>
+        <motion.div 
+          layoutId="penalty-action" 
+          className="absolute inset-0 liquid-light z-0"
+          style={{ opacity: isOpen ? 0 : 1 }}
+        />
+        <div className={`relative z-10 text-on-primary-fixed transition-opacity duration-300 ${isOpen ? 'opacity-0' : 'opacity-100'}`}>
+          <span className="material-symbols-outlined font-bold text-3xl">add</span>
+        </div>
+      </button>
 
       <AnimatedModal isOpen={isOpen} onClose={closeModal} layoutId="penalty-action">
         <div className="bg-surface relative z-10 w-full max-w-lg rounded-3xl shadow-2xl p-6 md:p-8 border border-white/10 flex flex-col max-h-[90vh]">

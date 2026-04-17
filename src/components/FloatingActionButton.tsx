@@ -77,14 +77,20 @@ export default function FloatingActionButton() {
 
   return (
     <>
-      <motion.button 
-        layoutId="add-employee-action"
+      <button 
         onClick={openModal}
-        className={`fixed bottom-28 right-6 w-16 h-16 bg-primary text-on-primary rounded-2xl shadow-[0_10px_30px_rgba(202,190,255,0.3)] flex items-center justify-center active:scale-90 transition-all z-40 hover:brightness-110 ${isOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
+        className="fixed bottom-28 right-6 w-16 h-16 rounded-2xl shadow-[0_10px_30px_rgba(202,190,255,0.3)] flex items-center justify-center transition-all z-40 hover:brightness-110 overflow-hidden group"
         title="Input Karyawan Lama"
       >
-        <span className="material-symbols-outlined font-bold text-3xl">add</span>
-      </motion.button>
+        <motion.div 
+          layoutId="add-employee-action" 
+          className="absolute inset-0 bg-primary z-0"
+          style={{ opacity: isOpen ? 0 : 1 }}
+        />
+        <div className={`relative z-10 text-on-primary transition-opacity duration-300 ${isOpen ? 'opacity-0' : 'opacity-100'}`}>
+          <span className="material-symbols-outlined font-bold text-3xl">add</span>
+        </div>
+      </button>
 
       <AnimatedModal isOpen={isOpen} onClose={closeModal} layoutId="add-employee-action">
           <div className="bg-surface relative z-10 w-full max-w-2xl rounded-[2rem] shadow-2xl p-6 md:p-10 border border-white/10 flex flex-col max-h-[90vh]">

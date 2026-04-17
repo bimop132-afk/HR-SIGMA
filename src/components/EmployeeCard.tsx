@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
 
 type Employee = {
   id: number;
@@ -24,7 +25,11 @@ export default function EmployeeCard({ employee }: { employee: Employee }) {
   const router = useRouter();
 
   return (
-    <div className={`block glass-card rounded-2xl p-5 border border-white/5 relative overflow-visible group ${employee.opacity || ""} hover:bg-white/5 transition-all duration-300`}>
+    <motion.div 
+      whileHover={{ scale: 1.02, y: -4 }}
+      whileTap={{ scale: 0.98 }}
+      className={`block glass-card rounded-2xl p-5 border border-white/5 relative overflow-visible group ${employee.opacity || ""} transition-colors duration-300 hover:bg-white/5`}
+    >
       {/* Clickable Area for Link */}
       <Link href={`/karyawan/${employee.id}`} className="absolute inset-0 z-0"></Link>
       
@@ -40,39 +45,49 @@ export default function EmployeeCard({ employee }: { employee: Employee }) {
         </div>
         
         <div className="relative">
-          <button 
+          <motion.button 
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
             onClick={(e) => { e.preventDefault(); e.stopPropagation(); setMenuOpen(!menuOpen); }}
-            className="p-2 hover:bg-white/5 rounded-full transition-colors active:scale-90 relative z-20 cursor-pointer"
+            className="p-2 bg-surface-container-highest hover:bg-primary/20 rounded-full transition-colors relative z-20 cursor-pointer"
           >
             <span className="material-symbols-outlined text-outline">more_vert</span>
-          </button>
+          </motion.button>
           
-          {menuOpen && (
-            <>
-              <div className="fixed inset-0 z-30" onClick={(e) => { e.stopPropagation(); setMenuOpen(false); }}></div>
-              <div className="absolute right-0 top-12 w-48 bg-surface-container-highest backdrop-blur-2xl border border-white/10 rounded-2xl shadow-2xl shadow-black/80 py-2 z-40 flex flex-col text-left animate-pop-in">
-                <button 
-                  onClick={(e) => { e.stopPropagation(); setMenuOpen(false); router.push(`/karyawan/${employee.id}`); }}
-                  className="px-5 py-3 text-sm font-medium transition-colors hover:bg-white/5 text-on-surface flex items-center gap-3 text-left w-full cursor-pointer"
+          <AnimatePresence>
+            {menuOpen && (
+              <>
+                <div className="fixed inset-0 z-30" onClick={(e) => { e.stopPropagation(); setMenuOpen(false); }}></div>
+                <motion.div 
+                  initial={{ opacity: 0, scale: 0.8, y: -10, filter: "blur(4px)" }}
+                  animate={{ opacity: 1, scale: 1, y: 0, filter: "blur(0px)" }}
+                  exit={{ opacity: 0, scale: 0.8, y: -10, filter: "blur(4px)" }}
+                  transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                  className="absolute right-0 top-12 w-48 bg-surface-container-highest backdrop-blur-3xl border border-white/10 rounded-2xl shadow-2xl py-2 z-40 flex flex-col text-left origin-top-right overflow-hidden"
                 >
-                  <span className="material-symbols-outlined text-[18px]">person</span> Lihat Profil
-                </button>
-                <button 
-                  onClick={(e) => { e.stopPropagation(); setMenuOpen(false); router.push(`/karyawan/${employee.id}/edit`); }}
-                  className="px-5 py-3 text-sm font-medium transition-colors hover:bg-white/5 text-on-surface flex items-center gap-3 text-left w-full cursor-pointer"
-                >
-                  <span className="material-symbols-outlined text-[18px]">edit</span> Edit Data
-                </button>
-                <div className="h-px w-full bg-white/10 my-1"></div>
-                <button 
-                  onClick={(e) => { e.stopPropagation(); setMenuOpen(false); }}
-                  className="px-5 py-3 text-sm font-medium transition-colors hover:bg-error/10 text-error flex items-center gap-3 text-left w-full cursor-pointer"
-                >
-                  <span className="material-symbols-outlined text-[18px]">delete</span> Hapus
-                </button>
-              </div>
-            </>
-          )}
+                  <button 
+                    onClick={(e) => { e.stopPropagation(); setMenuOpen(false); router.push(`/karyawan/${employee.id}`); }}
+                    className="px-5 py-3 text-sm font-medium transition-colors hover:bg-white/5 text-on-surface flex items-center gap-3 text-left w-full cursor-pointer"
+                  >
+                    <span className="material-symbols-outlined text-[18px]">person</span> Lihat Profil
+                  </button>
+                  <button 
+                    onClick={(e) => { e.stopPropagation(); setMenuOpen(false); router.push(`/karyawan/${employee.id}/edit`); }}
+                    className="px-5 py-3 text-sm font-medium transition-colors hover:bg-white/5 text-on-surface flex items-center gap-3 text-left w-full cursor-pointer"
+                  >
+                    <span className="material-symbols-outlined text-[18px]">edit</span> Edit Data
+                  </button>
+                  <div className="h-px w-full bg-white/10 my-1"></div>
+                  <button 
+                    onClick={(e) => { e.stopPropagation(); setMenuOpen(false); }}
+                    className="px-5 py-3 text-sm font-medium transition-colors hover:bg-error/20 text-error flex items-center gap-3 text-left w-full cursor-pointer"
+                  >
+                    <span className="material-symbols-outlined text-[18px]">delete</span> Hapus
+                  </button>
+                </motion.div>
+              </>
+            )}
+          </AnimatePresence>
         </div>
       </div>
       

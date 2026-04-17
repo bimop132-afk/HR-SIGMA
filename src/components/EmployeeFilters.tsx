@@ -2,6 +2,7 @@
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useTransition } from "react";
+import MorphingTabs from "./ui/MorphingTabs";
 
 export default function EmployeeFilters({ currentStatus }: { currentStatus?: string }) {
   const router = useRouter();
@@ -9,10 +10,15 @@ export default function EmployeeFilters({ currentStatus }: { currentStatus?: str
   const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
 
-  const handleFilter = (status: string) => {
+  const handleFilter = (tabName: string) => {
     const params = new URLSearchParams(searchParams.toString());
-    if (status) {
-      params.set("status", status);
+    
+    let dbStatus = "";
+    if (tabName === "Aktif") dbStatus = "AKTIF";
+    if (tabName === "Non-Aktif") dbStatus = "NON_AKTIF";
+
+    if (dbStatus) {
+      params.set("status", dbStatus);
     } else {
       params.delete("status");
     }
@@ -22,27 +28,18 @@ export default function EmployeeFilters({ currentStatus }: { currentStatus?: str
     });
   };
 
-  const activeClass = "bg-primary text-on-primary";
-  const idleClass = "bg-surface-container-highest text-on-surface hover:bg-surface-container-highest/80";
+  let activeTab = "Semua";
+  if (currentStatus === "AKTIF") activeTab = "Aktif";
+  if (currentStatus === "NON_AKTIF") activeTab = "Non-Aktif";
 
   return (
     <section className="mb-10 -mx-6">
       <div className="flex gap-3 overflow-x-auto hide-scrollbar px-6 pb-2">
-        <button 
-          onClick={() => handleFilter("")}
-          className={`flex items-center gap-2 px-5 py-2.5 rounded-full font-medium whitespace-nowrap active:scale-95 transition-all ${!currentStatus ? activeClass : idleClass}`}>
-          Semua
-        </button>
-        <button 
-          onClick={() => handleFilter("AKTIF")}
-          className={`flex items-center gap-2 px-5 py-2.5 rounded-full font-medium whitespace-nowrap active:scale-95 transition-all ${currentStatus === "AKTIF" ? activeClass : idleClass}`}>
-          Aktif
-        </button>
-        <button 
-          onClick={() => handleFilter("NON_AKTIF")}
-          className={`flex items-center gap-2 px-5 py-2.5 rounded-full font-medium whitespace-nowrap active:scale-95 transition-all ${currentStatus === "NON_AKTIF" ? activeClass : idleClass}`}>
-          Non-Aktif
-        </button>
+        <MorphingTabs 
+          tabs={["Semua", "Aktif", "Non-Aktif"]}
+          activeTab={activeTab}
+          onTabChange={handleFilter}
+        />
       </div>
     </section>
   );

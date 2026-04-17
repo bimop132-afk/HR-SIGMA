@@ -112,7 +112,9 @@
     scrollbar-width: none;
   }
   .liquid-light {
-    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-container) 100%);
+    background: linear-gradient(270deg, var(--color-primary), #b91c1c, var(--color-primary-container));
+    background-size: 400% 400%;
+    animation: liquidGradient 5s ease infinite;
   }
   .material-symbols-outlined {
     font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
@@ -124,6 +126,18 @@
   }
   .animate-pop-in {
     animation: popIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+}
+
+@keyframes liquidGradient {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
   }
 }
 

@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
 
 export default function OffboardingStatsGrid() {
   const [data, setData] = useState({
@@ -20,9 +21,27 @@ export default function OffboardingStatsGrid() {
       .finally(() => setLoading(false));
   }, []);
 
+  const container = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: { staggerChildren: 0.1 }
+    }
+  };
+
+  const item = {
+    hidden: { opacity: 0, y: 20, scale: 0.95 },
+    show: { opacity: 1, y: 0, scale: 1, transition: { type: "spring", stiffness: 300 } }
+  };
+
   return (
-    <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
-      <div className="glass p-6 rounded-3xl border border-white/5 flex flex-col justify-between aspect-video md:aspect-auto">
+    <motion.div 
+      variants={container}
+      initial="hidden"
+      animate="show"
+      className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12"
+    >
+      <motion.div variants={item} className="glass p-6 rounded-3xl border border-white/5 flex flex-col justify-between aspect-video md:aspect-auto">
         <div className="flex justify-between items-start">
           <div className="p-2 bg-primary/10 rounded-xl">
             <span className="material-symbols-outlined text-primary">logout</span>
@@ -37,9 +56,9 @@ export default function OffboardingStatsGrid() {
              <h3 className="text-4xl font-headline font-extrabold text-on-surface">{data.totalResign}</h3>
           )}
         </div>
-      </div>
+      </motion.div>
       
-      <div className="glass p-6 rounded-3xl border border-white/5 flex flex-col justify-between">
+      <motion.div variants={item} className="glass p-6 rounded-3xl border border-white/5 flex flex-col justify-between">
         <div className="flex justify-between items-start">
           <div className="p-2 bg-error/10 rounded-xl">
             <span className="material-symbols-outlined text-error">warning</span>
@@ -53,9 +72,9 @@ export default function OffboardingStatsGrid() {
              <h3 className="text-4xl font-headline font-extrabold text-on-surface">{data.phkCount}</h3>
           )}
         </div>
-      </div>
+      </motion.div>
       
-      <div className="glass p-6 rounded-3xl border border-white/5 flex flex-col justify-between">
+      <motion.div variants={item} className="glass p-6 rounded-3xl border border-white/5 flex flex-col justify-between">
         <div className="flex justify-between items-start">
           <div className="p-2 bg-secondary/10 rounded-xl">
             <span className="material-symbols-outlined text-secondary">pending_actions</span>
@@ -69,9 +88,9 @@ export default function OffboardingStatsGrid() {
              <h3 className="text-4xl font-headline font-extrabold text-on-surface">{data.pendingClearance}</h3>
           )}
         </div>
-      </div>
+      </motion.div>
       
-      <div className="glass p-6 rounded-3xl border border-white/5 flex flex-col justify-between">
+      <motion.div variants={item} className="glass p-6 rounded-3xl border border-white/5 flex flex-col justify-between">
         <div className="flex justify-between items-start">
           <div className="p-2 bg-tertiary/10 rounded-xl">
             <span className="material-symbols-outlined text-tertiary">task_alt</span>
@@ -85,7 +104,7 @@ export default function OffboardingStatsGrid() {
              <h3 className="text-4xl font-headline font-extrabold text-on-surface">{data.selesaiClearance}</h3>
           )}
         </div>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 }

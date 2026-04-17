@@ -18,6 +18,7 @@ export const metadata: Metadata = {
 };
 
 import { Toaster } from "react-hot-toast";
+import AnimateWrapper from "@/components/AnimateWrapper";
 
 export default function RootLayout({
   children,
@@ -36,7 +37,7 @@ export default function RootLayout({
         className={`${inter.variable} ${manrope.variable} pb-24 antialiased font-body bg-background text-on-background`}
       >
         <Toaster position="top-right" toastOptions={{ style: { background: '#1c1c1e', color: '#fff' } }} />
-        {children}
+        <AnimateWrapper>{children}</AnimateWrapper>
       </body>
     </html>
   );

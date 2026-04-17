@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import toast from "react-hot-toast";
+import { motion } from "framer-motion";
 import AnimatedModal from "@/components/ui/AnimatedModal";
 import MultiStateButton from "@/components/ui/MultiStateButton";
 
@@ -104,15 +105,16 @@ export default function ResignModal() {
 
   return (
     <>
-      <button 
+      <motion.button 
+        layoutId="resign-action"
         onClick={openModal}
         className="flex items-center gap-2 px-6 py-4 bg-gradient-to-br from-primary to-primary-container text-on-primary font-bold rounded-2xl shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all cursor-pointer"
       >
         <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>add_circle</span>
         Proses Resign Baru
-      </button>
+      </motion.button>
 
-      <AnimatedModal isOpen={isOpen} onClose={closeModal}>
+      <AnimatedModal isOpen={isOpen} onClose={closeModal} layoutId="resign-action">
           <div className="bg-surface relative z-10 w-full max-w-lg rounded-3xl shadow-2xl p-6 md:p-8 border border-white/10 flex flex-col max-h-[90vh]">
             <div className="flex justify-between items-center mb-6">
               <h3 className="font-headline text-2xl font-bold text-on-surface">Proses Resign Baru</h3>

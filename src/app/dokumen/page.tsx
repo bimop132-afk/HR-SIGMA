@@ -3,6 +3,8 @@ import { useState, useMemo, useEffect, useRef } from "react";
 import AppLayout from "@/components/AppLayout";
 import DocumentCard from "@/components/dokumen/DocumentCard";
 import DocumentViewer from "@/components/DocumentViewer";
+import { motion } from "framer-motion";
+import AnimatedModal from "@/components/ui/AnimatedModal";
 
 type DocType = "Kontrak" | "KTP" | "NPWP" | "SK" | "Paklaring" | "Ijazah" | "Lainnya";
 type FilterType = "Semua" | DocType;
@@ -305,7 +307,8 @@ export default function DokumenPage() {
       )}
 
       {/* Upload FAB */}
-      <button
+      <motion.button
+        layoutId="upload-doc-action"
         onClick={() => setShowUploadModal(true)}
         className="fixed bottom-24 right-6 w-14 h-14 rounded-2xl liquid-light text-on-primary-fixed shadow-lg shadow-primary/30 flex items-center justify-center active:scale-90 transition-all duration-150 z-50 hover:shadow-xl hover:shadow-primary/40"
         title="Unggah Dokumen Baru"
@@ -313,14 +316,10 @@ export default function DokumenPage() {
         <span className="material-symbols-outlined text-2xl" style={{ fontVariationSettings: "'FILL' 1" }}>
           add
         </span>
-      </button>
+      </motion.button>
 
       {/* Upload Modal */}
-      {showUploadModal && (
-        <div
-          className="fixed inset-0 z-[80] bg-black/70 backdrop-blur-sm flex items-end md:items-center justify-center p-4"
-          onClick={() => setShowUploadModal(false)}
-        >
+      <AnimatedModal isOpen={showUploadModal} onClose={() => setShowUploadModal(false)} layoutId="upload-doc-action">
           <div
             className="glass border border-white/10 rounded-3xl p-7 w-full max-w-sm shadow-2xl space-y-5"
             onClick={(e) => e.stopPropagation()}
@@ -385,8 +384,7 @@ export default function DokumenPage() {
               {isUploading ? "Mengunggah..." : "Simpan & Unggah"}
             </button>
           </div>
-        </div>
-      )}
+      </AnimatedModal>
     </AppLayout>
   );
 }

@@ -7,9 +7,10 @@ interface AnimatedModalProps {
   onClose: () => void;
   children: React.ReactNode;
   className?: string;
+  layoutId?: string;
 }
 
-export default function AnimatedModal({ isOpen, onClose, children, className = "" }: AnimatedModalProps) {
+export default function AnimatedModal({ isOpen, onClose, children, className = "", layoutId }: AnimatedModalProps) {
   // Prevent scrolling when modal is open
   useEffect(() => {
     if (isOpen) {
@@ -23,8 +24,8 @@ export default function AnimatedModal({ isOpen, onClose, children, className = "
   }, [isOpen]);
 
   const transitionSettings = {
-    duration: 0.4,
-    ease: [0.16, 1, 0.3, 1] as const // Smooth pop-in
+    duration: 1, // Item B: 1000ms
+    ease: [0.16, 1, 0.3, 1] as const // Smooth elastic feeling
   };
 
   return (
@@ -43,6 +44,8 @@ export default function AnimatedModal({ isOpen, onClose, children, className = "
 
           {/* Modal Content */}
           <motion.div
+            layoutId={layoutId}
+            layout
             initial={{ opacity: 0, scale: 0.95, y: 10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 10 }}

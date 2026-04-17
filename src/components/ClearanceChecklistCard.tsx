@@ -143,7 +143,10 @@ export default function ClearanceChecklistCard({ resignationId, name, status, it
           </div>
 
           <div className="mt-10 pt-6 border-t border-white/5">
-            <button className="w-full py-4 rounded-2xl bg-surface-container-highest border border-outline-variant/30 text-on-surface font-bold text-sm hover:bg-white/10 transition-all flex items-center justify-center gap-2 cursor-pointer">
+            <button 
+              onClick={() => window.print()}
+              className="w-full py-4 rounded-2xl bg-surface-container-highest border border-outline-variant/30 text-on-surface font-bold text-sm hover:bg-white/10 transition-all flex items-center justify-center gap-2 cursor-pointer"
+            >
               <span className="material-symbols-outlined text-sm">print</span>
               Cetak Form Clearance
             </button>

@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
+import { motion, Variants } from "framer-motion";
 
 export default function OffboardingStatsGrid() {
   const [data, setData] = useState({
@@ -21,7 +21,7 @@ export default function OffboardingStatsGrid() {
       .finally(() => setLoading(false));
   }, []);
 
-  const container = {
+  const container: Variants = {
     hidden: { opacity: 0 },
     show: {
       opacity: 1,
@@ -29,7 +29,7 @@ export default function OffboardingStatsGrid() {
     }
   };
 
-  const item = {
+  const item: Variants = {
     hidden: { opacity: 0, y: 20, scale: 0.95 },
     show: { opacity: 1, y: 0, scale: 1, transition: { type: "spring", stiffness: 300 } }
   };

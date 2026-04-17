@@ -1,5 +1,5 @@
 "use client";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, Variants } from "framer-motion";
 import { ButtonHTMLAttributes } from "react";
 
 type ButtonState = "idle" | "loading" | "success" | "error";
@@ -22,7 +22,7 @@ export default function MultiStateButton({
   ...props
 }: MultiStateButtonProps) {
   
-  const variants = {
+  const variants: Variants = {
     initial: { opacity: 0, y: 15, scale: 0.9 },
     animate: { opacity: 1, y: 0, scale: 1 },
     exit: { opacity: 0, y: -15, scale: 0.9 },
@@ -30,7 +30,7 @@ export default function MultiStateButton({
 
   const transition = {
     duration: 0.4,
-    ease: [0.25, 1, 0.5, 1] // balanced springy-feel Custom ease
+    ease: [0.25, 1, 0.5, 1] as const // balanced springy-feel Custom ease
   };
 
   return (

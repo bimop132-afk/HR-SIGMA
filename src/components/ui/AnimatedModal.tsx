@@ -24,7 +24,7 @@ export default function AnimatedModal({ isOpen, onClose, children, className = "
 
   const transitionSettings = {
     duration: 0.4,
-    ease: [0.16, 1, 0.3, 1] // Smooth pop-in
+    ease: [0.16, 1, 0.3, 1] as const // Smooth pop-in
   };
 
   return (

@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, Variants } from "framer-motion";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -25,7 +25,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
     { href: "/export",      icon: "ios_share",       label: "Export Laporan" },
   ];
 
-  const sidebarVariants = {
+  const sidebarVariants: Variants = {
     closed: {
       x: "-100%",
       transition: { duration: 0.4, ease: [0.22, 1, 0.36, 1] }
@@ -36,7 +36,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
     }
   };
 
-  const itemVariants = {
+  const itemVariants: Variants = {
     closed: { opacity: 0, x: -20 },
     open: { opacity: 1, x: 0, transition: { duration: 0.4, ease: "easeOut" } }
   };

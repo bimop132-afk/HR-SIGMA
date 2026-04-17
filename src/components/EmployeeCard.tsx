@@ -1,4 +1,7 @@
+"use client";
 import Link from "next/link";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 type Employee = {
   id: number;
@@ -17,10 +20,16 @@ type Employee = {
 };
 
 export default function EmployeeCard({ employee }: { employee: Employee }) {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const router = useRouter();
+
   return (
-    <Link href={`/karyawan/${employee.id}`} className={`block glass-card rounded-2xl p-5 border border-white/5 relative overflow-hidden group ${employee.opacity || ""} hover:bg-white/5 transition-all duration-300 active:scale-[0.98]`}>
-      <div className="flex justify-between items-start mb-4">
-        <div className="flex gap-4">
+    <div className={`block glass-card rounded-2xl p-5 border border-white/5 relative overflow-visible group ${employee.opacity || ""} hover:bg-white/5 transition-all duration-300`}>
+      {/* Clickable Area for Link */}
+      <Link href={`/karyawan/${employee.id}`} className="absolute inset-0 z-0"></Link>
+      
+      <div className="flex justify-between items-start mb-4 relative z-10">
+        <div className="flex gap-4 pointer-events-none">
           <div className={`w-14 h-14 rounded-xl flex items-center justify-center font-bold text-lg ${employee.avatarColor}`}>
             {employee.initials}
           </div>
@@ -29,11 +38,45 @@ export default function EmployeeCard({ employee }: { employee: Employee }) {
             <p className="text-sm text-on-surface-variant font-medium">NIP {employee.nip}</p>
           </div>
         </div>
-        <button className="p-2 hover:bg-white/5 rounded-full transition-colors active:scale-90">
-          <span className="material-symbols-outlined text-outline">more_vert</span>
-        </button>
+        
+        <div className="relative">
+          <button 
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); setMenuOpen(!menuOpen); }}
+            className="p-2 hover:bg-white/5 rounded-full transition-colors active:scale-90 relative z-20 cursor-pointer"
+          >
+            <span className="material-symbols-outlined text-outline">more_vert</span>
+          </button>
+          
+          {menuOpen && (
+            <>
+              <div className="fixed inset-0 z-30" onClick={(e) => { e.stopPropagation(); setMenuOpen(false); }}></div>
+              <div className="absolute right-0 top-12 w-48 glass border border-white/10 rounded-2xl shadow-xl shadow-black/50 py-2 z-40 flex flex-col text-left animate-in fade-in zoom-in-95">
+                <button 
+                  onClick={(e) => { e.stopPropagation(); setMenuOpen(false); router.push(`/karyawan/${employee.id}`); }}
+                  className="px-5 py-3 text-sm font-medium transition-colors hover:bg-white/5 text-on-surface flex items-center gap-3 text-left w-full cursor-pointer"
+                >
+                  <span className="material-symbols-outlined text-[18px]">person</span> Lihat Profil
+                </button>
+                <button 
+                  onClick={(e) => { e.stopPropagation(); setMenuOpen(false); router.push(`/karyawan/${employee.id}/edit`); }}
+                  className="px-5 py-3 text-sm font-medium transition-colors hover:bg-white/5 text-on-surface flex items-center gap-3 text-left w-full cursor-pointer"
+                >
+                  <span className="material-symbols-outlined text-[18px]">edit</span> Edit Data
+                </button>
+                <div className="h-px w-full bg-white/10 my-1"></div>
+                <button 
+                  onClick={(e) => { e.stopPropagation(); setMenuOpen(false); }}
+                  className="px-5 py-3 text-sm font-medium transition-colors hover:bg-error/10 text-error flex items-center gap-3 text-left w-full cursor-pointer"
+                >
+                  <span className="material-symbols-outlined text-[18px]">delete</span> Hapus
+                </button>
+              </div>
+            </>
+          )}
+        </div>
       </div>
-      <div className="grid grid-cols-2 gap-y-3 mb-4">
+      
+      <div className="grid grid-cols-2 gap-y-3 mb-4 relative z-10 pointer-events-none">
         <div>
           <p className="text-[10px] text-outline uppercase tracking-wider mb-1">Posisi</p>
           <p className="text-sm font-semibold text-secondary">{employee.posisi}</p>
@@ -58,6 +101,6 @@ export default function EmployeeCard({ employee }: { employee: Employee }) {
           <p className="text-sm font-semibold text-primary">{employee.tenure || "-"}</p>
         </div>
       </div>
-    </Link>
+    </div>
   );
 }

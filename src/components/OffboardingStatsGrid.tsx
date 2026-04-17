@@ -1,4 +1,25 @@
+"use client";
+import { useEffect, useState } from "react";
+
 export default function OffboardingStatsGrid() {
+  const [data, setData] = useState({
+    totalResign: 0,
+    phkCount: 0,
+    pendingClearance: 0,
+    selesaiClearance: 0,
+    percentChange: 0,
+  });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/resignations/stats")
+      .then(res => res.json())
+      .then(body => {
+        if (body.success) setData(body.data);
+      })
+      .finally(() => setLoading(false));
+  }, []);
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
       <div className="glass p-6 rounded-3xl border border-white/5 flex flex-col justify-between aspect-video md:aspect-auto">
@@ -6,11 +27,15 @@ export default function OffboardingStatsGrid() {
           <div className="p-2 bg-primary/10 rounded-xl">
             <span className="material-symbols-outlined text-primary">logout</span>
           </div>
-          <span className="text-tertiary text-xs font-bold font-label">+12% Bulan Ini</span>
+          <span className="text-tertiary text-xs font-bold font-label">+{data.percentChange}% Bulan Ini</span>
         </div>
         <div>
           <p className="text-on-surface-variant text-sm font-medium mb-1">Total Resign</p>
-          <h3 className="text-4xl font-headline font-extrabold text-on-surface">42</h3>
+          {loading ? (
+             <h3 className="h-10 w-16 bg-surface-container animate-pulse rounded"></h3>
+          ) : (
+             <h3 className="text-4xl font-headline font-extrabold text-on-surface">{data.totalResign}</h3>
+          )}
         </div>
       </div>
       
@@ -22,7 +47,11 @@ export default function OffboardingStatsGrid() {
         </div>
         <div>
           <p className="text-on-surface-variant text-sm font-medium mb-1">PHK / Darurat</p>
-          <h3 className="text-4xl font-headline font-extrabold text-on-surface">08</h3>
+          {loading ? (
+             <h3 className="h-10 w-16 bg-surface-container animate-pulse rounded"></h3>
+          ) : (
+             <h3 className="text-4xl font-headline font-extrabold text-on-surface">{data.phkCount}</h3>
+          )}
         </div>
       </div>
       
@@ -34,7 +63,11 @@ export default function OffboardingStatsGrid() {
         </div>
         <div>
           <p className="text-on-surface-variant text-sm font-medium mb-1">Menunggu Clearance</p>
-          <h3 className="text-4xl font-headline font-extrabold text-on-surface">15</h3>
+          {loading ? (
+             <h3 className="h-10 w-16 bg-surface-container animate-pulse rounded"></h3>
+          ) : (
+             <h3 className="text-4xl font-headline font-extrabold text-on-surface">{data.pendingClearance}</h3>
+          )}
         </div>
       </div>
       
@@ -45,8 +78,12 @@ export default function OffboardingStatsGrid() {
           </div>
         </div>
         <div>
-          <p className="text-on-surface-variant text-sm font-medium mb-1">Selesai (Q4)</p>
-          <h3 className="text-4xl font-headline font-extrabold text-on-surface">128</h3>
+          <p className="text-on-surface-variant text-sm font-medium mb-1">Selesai</p>
+          {loading ? (
+             <h3 className="h-10 w-16 bg-surface-container animate-pulse rounded"></h3>
+          ) : (
+             <h3 className="text-4xl font-headline font-extrabold text-on-surface">{data.selesaiClearance}</h3>
+          )}
         </div>
       </div>
     </div>

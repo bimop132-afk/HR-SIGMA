@@ -1,5 +1,8 @@
+"use client";
 import { format } from "date-fns";
 import { id } from "date-fns/locale";
+import { useState } from "react";
+import Link from "next/link";
 
 type ResignationInfo = {
   id: number;
@@ -13,6 +16,8 @@ type ResignationInfo = {
 };
 
 export default function ResignHistoryTable({ data }: { data: ResignationInfo[] }) {
+  const [openMenuId, setOpenMenuId] = useState<number | null>(null);
+
   return (
     <div className="xl:col-span-2 space-y-6">
       <div className="flex items-center justify-between">
@@ -27,7 +32,7 @@ export default function ResignHistoryTable({ data }: { data: ResignationInfo[] }
         </div>
       </div>
       
-      <div className="glass rounded-3xl overflow-x-auto border border-white/5">
+      <div className="glass rounded-3xl overflow-x-auto border border-white/5 pb-24">
         <table className="w-full text-left border-collapse min-w-[600px]">
           <thead>
             <tr className="bg-white/5">
@@ -56,7 +61,7 @@ export default function ResignHistoryTable({ data }: { data: ResignationInfo[] }
               const statusText = isCompleted ? "Selesai" : "Proses";
 
               return (
-                <tr key={item.id} className="hover:bg-white/5 transition-colors group">
+                <tr key={item.id} className="hover:bg-white/5 transition-colors group relative">
                   <td className="px-6 py-5">
                     <div className="flex items-center gap-3">
                       <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-xs ${item.avatarColor}`}>
@@ -82,16 +87,37 @@ export default function ResignHistoryTable({ data }: { data: ResignationInfo[] }
                       <span className={`text-xs font-bold ${textClass}`}>{statusText}</span>
                     </div>
                   </td>
-                  <td className="px-6 py-5 text-right">
-                    <button className="text-on-surface-variant hover:text-primary transition-colors cursor-pointer">
+                  <td className="px-6 py-5 text-right relative">
+                    <button 
+                      onClick={() => setOpenMenuId(openMenuId === item.id ? null : item.id)}
+                      className="text-on-surface-variant hover:text-primary transition-colors cursor-pointer p-2"
+                    >
                       <span className="material-symbols-outlined">more_vert</span>
                     </button>
+                    {openMenuId === item.id && (
+                      <div className="absolute right-8 top-10 z-50 glass border border-white/10 rounded-2xl shadow-xl shadow-black/50 py-2 min-w-[200px] flex flex-col text-left animate-in fade-in slide-in-from-top-2">
+                        <Link href={`/resign/${item.id}`} className="px-5 py-3 text-sm font-medium transition-colors hover:bg-white/5 text-on-surface flex items-center gap-3">
+                          <span className="material-symbols-outlined text-[18px]">visibility</span> Lihat Detail
+                        </Link>
+                        <button onClick={() => window.print()} className="px-5 py-3 text-sm font-medium transition-colors hover:bg-white/5 text-on-surface flex items-center gap-3 text-left">
+                          <span className="material-symbols-outlined text-[18px]">print</span> Cetak Dokumen
+                        </button>
+                        <div className="h-px w-full bg-white/10 my-1"></div>
+                        <button className="px-5 py-3 text-sm font-medium transition-colors hover:bg-error/10 text-error flex items-center gap-3 text-left">
+                          <span className="material-symbols-outlined text-[18px]">delete</span> Hapus Data
+                        </button>
+                      </div>
+                    )}
                   </td>
                 </tr>
               );
             })}
           </tbody>
         </table>
+        {/* Click outside to close handler placeholder */}
+        {openMenuId !== null && (
+          <div className="fixed inset-0 z-40" onClick={() => setOpenMenuId(null)}></div>
+        )}
       </div>
     </div>
   );

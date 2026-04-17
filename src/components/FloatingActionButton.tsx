@@ -77,20 +77,30 @@ export default function FloatingActionButton() {
 
   return (
     <>
-      <button 
-        onClick={openModal}
-        className="fixed bottom-28 right-6 w-16 h-16 rounded-2xl shadow-[0_10px_30px_rgba(202,190,255,0.3)] flex items-center justify-center transition-all z-40 hover:brightness-110 overflow-hidden group"
-        title="Input Karyawan Lama"
-      >
-        <motion.div 
-          layoutId="add-employee-action" 
-          className="absolute inset-0 bg-primary z-0"
-          style={{ opacity: isOpen ? 0 : 1 }}
-        />
-        <div className={`relative z-10 text-on-primary transition-opacity duration-300 ${isOpen ? 'opacity-0' : 'opacity-100'}`}>
-          <span className="material-symbols-outlined font-bold text-3xl">add</span>
-        </div>
-      </button>
+      <div className="w-full mb-8">
+        <button 
+          onClick={openModal}
+          className="group relative w-full h-32 rounded-[2.5rem] overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-300 cursor-pointer border border-white/5 active:scale-[0.98]"
+        >
+          {/* Animated Background (Morph Seed) */}
+          <motion.div 
+            layoutId="add-employee-action" 
+            className="absolute inset-0 bg-gradient-to-br from-primary to-primary-container z-0"
+            style={{ opacity: isOpen ? 0 : 1 }}
+          />
+
+          {/* Card Content (Fades during morph) */}
+          <div className={`relative z-10 flex items-center gap-6 px-8 h-full text-on-primary transition-opacity duration-300 ${isOpen ? 'opacity-0' : 'opacity-100'}`}>
+            <div className="w-16 h-16 rounded-[1.5rem] bg-white/20 flex items-center justify-center group-hover:scale-110 transition-transform shadow-inner">
+              <span className="material-symbols-outlined text-4xl font-bold">person_add</span>
+            </div>
+            <div className="flex flex-col items-start text-left">
+              <h3 className="text-xl font-headline font-bold">Input Karyawan Lama</h3>
+              <p className="text-sm opacity-80 font-body">Daftarkan karyawan dengan NIP yang sudah ada</p>
+            </div>
+          </div>
+        </button>
+      </div>
 
       <AnimatedModal isOpen={isOpen} onClose={closeModal} layoutId="add-employee-action">
           <div className="bg-surface relative z-10 w-full max-w-2xl rounded-[2rem] shadow-2xl p-6 md:p-10 border border-white/10 flex flex-col max-h-[90vh]">

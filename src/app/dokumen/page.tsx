@@ -306,23 +306,25 @@ export default function DokumenPage() {
         />
       )}
 
-      {/* Upload FAB */}
-      <button
-        onClick={() => setShowUploadModal(true)}
-        className="fixed bottom-24 right-6 w-14 h-14 rounded-2xl shadow-lg shadow-primary/30 flex items-center justify-center transition-all duration-150 z-50 hover:shadow-xl hover:shadow-primary/40 overflow-hidden group"
-        title="Unggah Dokumen Baru"
-      >
-        <motion.div 
-          layoutId="upload-doc-action" 
-          className="absolute inset-0 liquid-light z-0"
-          style={{ opacity: showUploadModal ? 0 : 1 }}
-        />
-        <div className={`relative z-10 text-on-primary-fixed transition-opacity duration-300 ${showUploadModal ? 'opacity-0' : 'opacity-100'}`}>
-          <span className="material-symbols-outlined text-2xl" style={{ fontVariationSettings: "'FILL' 1" }}>
-            add
-          </span>
-        </div>
-      </button>
+      {/* Upload Action Card */}
+      <div className="mb-10 w-full max-w-sm mx-auto md:mx-0">
+        <button
+          onClick={() => setShowUploadModal(true)}
+          className="group relative w-full h-32 rounded-[2rem] overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-300 cursor-pointer border border-white/5 active:scale-[0.98]"
+          title="Unggah Dokumen Baru"
+        >
+          <motion.div 
+            layoutId="upload-doc-action" 
+            className="absolute inset-0 bg-gradient-to-br from-primary to-primary-container z-0"
+            style={{ opacity: showUploadModal ? 0 : 1 }}
+          />
+
+          <div className={`relative z-10 flex flex-col items-center justify-center gap-2 h-full text-on-primary transition-opacity duration-300 ${showUploadModal ? 'opacity-0' : 'opacity-100'}`}>
+            <span className="material-symbols-outlined text-4xl group-hover:scale-110 transition-transform">cloud_upload</span>
+            <span className="font-bold">Unggah Dokumen Baru</span>
+          </div>
+        </button>
+      </div>
 
       {/* Upload Modal */}
       <AnimatedModal isOpen={showUploadModal} onClose={() => setShowUploadModal(false)} layoutId="upload-doc-action">

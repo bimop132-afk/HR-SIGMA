@@ -45,6 +45,7 @@ export default function DendaPage() {
     <AppLayout showBottomNav={true}>
       <div className="p-6 md:p-10 mb-10">
         <div className="max-w-md mx-auto lg:mx-0 space-y-8">
+          <PenaltyModal onSuccess={fetchPenalties} />
           <DendaHeader />
           <PenaltyStatsCard />
           <PenaltyFilters />
@@ -61,8 +62,6 @@ export default function DendaPage() {
           <div className="h-10"></div>
         </div>
       </div>
-
-      <PenaltyModal onSuccess={fetchPenalties} />
     </AppLayout>
   );
 }

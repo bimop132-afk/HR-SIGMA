@@ -56,6 +56,7 @@ export default async function KaryawanPage({ searchParams }: { searchParams: Pro
     <AppLayout>
       <div className="p-6 md:p-10 mb-20">
         <div className="max-w-3xl mx-auto lg:mx-0 w-full">
+          <FloatingActionButton />
           <EmployeeSearch defaultValue={search} />
           <EmployeeFilters currentStatus={statusFilter} />
           
@@ -69,7 +70,6 @@ export default async function KaryawanPage({ searchParams }: { searchParams: Pro
           </section>
         </div>
       </div>
-      <FloatingActionButton />
     </AppLayout>
   );
 }

@@ -105,23 +105,31 @@ export default function ResignModal() {
 
   return (
     <>
-      <button 
-        onClick={openModal}
-        className="group relative flex items-center gap-2 px-6 py-4 font-bold rounded-2xl shadow-lg transition-all cursor-pointer overflow-hidden"
-      >
-        {/* The "Seed" for the morph animation */}
-        <motion.div 
-          layoutId="resign-action" 
-          className="absolute inset-0 bg-gradient-to-br from-primary to-primary-container z-0"
-          style={{ opacity: isOpen ? 0 : 1 }}
-        />
-        
-        {/* Static content that won't stretch */}
-        <div className={`relative z-10 flex items-center gap-2 text-on-primary transition-opacity duration-300 ${isOpen ? 'opacity-0' : 'opacity-100'}`}>
-          <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>add_circle</span>
-          <span>Proses Resign Baru</span>
-        </div>
-      </button>
+    <>
+      <div className="w-full">
+        <button 
+          onClick={openModal}
+          className="group relative w-full h-32 rounded-3xl overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-300 cursor-pointer border border-white/5 active:scale-[0.98]"
+        >
+          {/* Animated Background (Morph Seed) */}
+          <motion.div 
+            layoutId="resign-action" 
+            className="absolute inset-0 bg-gradient-to-br from-error/80 to-error-container z-0"
+            style={{ opacity: isOpen ? 0 : 1 }}
+          />
+
+          {/* Card Content (Fades during morph) */}
+          <div className={`relative z-10 flex items-center justify-between px-8 h-full text-on-error transition-opacity duration-300 ${isOpen ? 'opacity-0' : 'opacity-100'}`}>
+            <div className="flex flex-col items-start gap-1">
+              <h3 className="text-xl font-headline font-bold">Proses Karyawan Resign</h3>
+              <p className="text-sm opacity-80 font-body">Input data pengunduran diri & cetak surat A4</p>
+            </div>
+            <div className="w-14 h-14 rounded-2xl bg-white/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <span className="material-symbols-outlined text-3xl" style={{ fontVariationSettings: "'FILL' 1" }}>person_remove</span>
+            </div>
+          </div>
+        </button>
+      </div>
 
       <AnimatedModal isOpen={isOpen} onClose={closeModal} layoutId="resign-action">
           <div className="bg-surface relative z-10 w-full max-w-lg rounded-3xl shadow-2xl p-6 md:p-8 border border-white/10 flex flex-col max-h-[90vh]">

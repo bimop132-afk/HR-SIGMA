@@ -30,8 +30,7 @@ export default function EmployeeCard({ employee }: { employee: Employee }) {
       whileTap={{ scale: 0.98 }}
       className={`block glass-card rounded-2xl p-5 border border-white/5 relative overflow-visible group ${employee.opacity || ""} transition-colors duration-300 hover:bg-white/5`}
     >
-      {/* Clickable Area for Link */}
-      <Link href={`/karyawan/${employee.id}`} className="absolute inset-0 z-0"></Link>
+      <Link href={`/karyawan/${employee.id}`} className="absolute inset-0 z-0" />
       
       <div className="flex justify-between items-start mb-4 relative z-10">
         <div className="flex gap-4 pointer-events-none">
@@ -57,7 +56,7 @@ export default function EmployeeCard({ employee }: { employee: Employee }) {
           <AnimatePresence>
             {menuOpen && (
               <>
-                <div className="fixed inset-0 z-30" onClick={(e) => { e.stopPropagation(); setMenuOpen(false); }}></div>
+                <div className="fixed inset-0 z-30" onClick={(e) => { e.stopPropagation(); setMenuOpen(false); }} />
                 <motion.div 
                   initial={{ opacity: 0, scale: 0.8, y: -10, filter: "blur(4px)" }}
                   animate={{ opacity: 1, scale: 1, y: 0, filter: "blur(0px)" }}
@@ -77,7 +76,7 @@ export default function EmployeeCard({ employee }: { employee: Employee }) {
                   >
                     <span className="material-symbols-outlined text-[18px]">edit</span> Edit Data
                   </button>
-                  <div className="h-px w-full bg-white/10 my-1"></div>
+                  <div className="h-px w-full bg-white/10 my-1" />
                   <button 
                     onClick={(e) => { e.stopPropagation(); setMenuOpen(false); }}
                     className="px-5 py-3 text-sm font-medium transition-colors hover:bg-error/20 text-error flex items-center gap-3 text-left w-full cursor-pointer"
@@ -107,7 +106,7 @@ export default function EmployeeCard({ employee }: { employee: Employee }) {
         <div>
           <p className="text-[10px] text-outline uppercase tracking-wider mb-1">Status</p>
           <span className={`inline-flex items-center px-3 py-1 text-xs font-bold rounded-full ${employee.statusBgClass}`}>
-            <span className={`w-1.5 h-1.5 rounded-full mr-1.5 ${employee.statusDotClass}`}></span>
+            <span className={`w-1.5 h-1.5 rounded-full mr-1.5 ${employee.statusDotClass}`} />
             {employee.status}
           </span>
         </div>
@@ -116,6 +115,6 @@ export default function EmployeeCard({ employee }: { employee: Employee }) {
           <p className="text-sm font-semibold text-primary">{employee.tenure || "-"}</p>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }

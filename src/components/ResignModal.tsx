@@ -105,7 +105,6 @@ export default function ResignModal() {
 
   return (
     <>
-    <>
       <div className="w-full">
         <button 
           onClick={openModal}

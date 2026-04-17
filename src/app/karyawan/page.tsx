@@ -48,7 +48,7 @@ export default async function KaryawanPage({ searchParams }: { searchParams: Pro
     avatarColor: e.status === "AKTIF" ? "bg-primary-container text-on-primary-container" : "bg-surface-variant text-on-surface-variant",
     statusBgClass: e.status === "AKTIF" ? "bg-tertiary-container/20 text-tertiary-fixed" : "bg-surface-variant/40 text-on-surface-variant",
     statusDotClass: e.status === "AKTIF" ? "bg-tertiary" : "bg-error-container",
-    opacity: e.status === "AKTIF" ? "" : "opacity-80",
+    opacity: "",
     tenure: calculateTenure(e.tanggal_masuk, e.tanggal_keluar),
   }));
 
@@ -63,8 +63,8 @@ export default async function KaryawanPage({ searchParams }: { searchParams: Pro
             {formattedEmployees.length === 0 && (
               <div className="text-center py-10 text-on-surface-variant">Tidak ada karyawan yang ditemukan.</div>
             )}
-            {formattedEmployees.map((employee, idx) => (
-              <EmployeeCard key={idx} employee={employee} />
+            {formattedEmployees.map((employee) => (
+              <EmployeeCard key={employee.id} employee={employee} />
             ))}
           </section>
         </div>

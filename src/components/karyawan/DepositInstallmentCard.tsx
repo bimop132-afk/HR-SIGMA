@@ -12,6 +12,8 @@ interface Installment {
   tanggal: string;
 }
 
+import AnimatedModal from "@/components/ui/AnimatedModal";
+
 export default function DepositInstallmentCard({ 
   employeeId, 
   installmentsInitial,
@@ -79,7 +81,7 @@ export default function DepositInstallmentCard({
           </h3>
           <button 
             onClick={() => setIsOpen(true)}
-            className="text-[10px] font-bold bg-primary text-on-primary px-3 py-1.5 rounded-full hover:scale-105 transition-transform"
+            className="text-[10px] font-bold bg-primary text-on-primary px-3 py-1.5 rounded-full hover:scale-105 transition-transform cursor-pointer"
           >
             + INPUT CICILAN
           </button>
@@ -120,11 +122,8 @@ export default function DepositInstallmentCard({
         </div>
       </div>
 
-      {/* Modal */}
-      {isOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setIsOpen(false)}></div>
-          <div className="bg-surface relative z-10 w-full max-w-sm rounded-3xl shadow-2xl p-6 border border-white/10">
+      <AnimatedModal isOpen={isOpen} onClose={() => setIsOpen(false)}>
+          <div className="bg-surface relative z-10 w-full rounded-3xl shadow-2xl p-6 border border-white/10">
             <h3 className="font-headline font-bold text-xl mb-4 text-on-surface">Input Potong Gaji Jaminan</h3>
             
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -134,7 +133,7 @@ export default function DepositInstallmentCard({
                   type="date"
                   value={tanggal}
                   onChange={(e) => setTanggal(e.target.value)}
-                  className="w-full bg-surface-container border border-white/5 rounded-xl px-4 py-3 text-sm text-on-surface mt-1"
+                  className="w-full bg-surface-container border border-white/5 rounded-xl px-4 py-3 text-sm text-on-surface mt-1 focus:ring-2 focus:ring-primary outline-none transition-all"
                   required
                 />
               </div>
@@ -144,7 +143,7 @@ export default function DepositInstallmentCard({
                   type="number"
                   value={jumlah}
                   onChange={(e) => setJumlah(e.target.value)}
-                  className="w-full bg-surface-container border border-white/5 rounded-xl px-4 py-3 text-sm text-on-surface mt-1"
+                  className="w-full bg-surface-container border border-white/5 rounded-xl px-4 py-3 text-sm text-on-surface mt-1 focus:ring-2 focus:ring-primary outline-none transition-all"
                   required
                 />
               </div>
@@ -154,21 +153,20 @@ export default function DepositInstallmentCard({
                   type="text"
                   value={keterangan}
                   onChange={(e) => setKeterangan(e.target.value)}
-                  className="w-full bg-surface-container border border-white/5 rounded-xl px-4 py-3 text-sm text-on-surface mt-1"
+                  className="w-full bg-surface-container border border-white/5 rounded-xl px-4 py-3 text-sm text-on-surface mt-1 focus:ring-2 focus:ring-primary outline-none transition-all"
                   required
                 />
               </div>
 
               <div className="flex gap-3 pt-4">
-                <button type="button" onClick={() => setIsOpen(false)} className="flex-1 py-3 bg-surface-container-highest rounded-xl text-sm font-bold text-on-surface-variant cursor-pointer">Batal</button>
-                <button type="submit" disabled={loading} className="flex-1 py-3 liquid-light rounded-xl text-sm font-bold text-on-primary-fixed disabled:opacity-50 cursor-pointer">
+                <button type="button" onClick={() => setIsOpen(false)} className="flex-1 py-3 bg-surface-container-highest rounded-xl text-sm font-bold text-on-surface-variant cursor-pointer hover:bg-opacity-80 transition-all">Batal</button>
+                <button type="submit" disabled={loading} className="flex-1 py-3 liquid-light rounded-xl text-sm font-bold text-on-primary-fixed disabled:opacity-50 cursor-pointer hover:scale-[1.02] transition-transform active:scale-95">
                   {loading ? "Menyimpan..." : "Simpan"}
                 </button>
               </div>
             </form>
           </div>
-        </div>
-      )}
+      </AnimatedModal>
     </>
   );
 }

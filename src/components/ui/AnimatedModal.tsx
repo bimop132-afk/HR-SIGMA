@@ -24,8 +24,15 @@ export default function AnimatedModal({ isOpen, onClose, children, className = "
   }, [isOpen]);
 
   const transitionSettings = {
-    duration: 1, // Item B: 1000ms
-    ease: [0.16, 1, 0.3, 1] as const // Smooth elastic feeling
+    type: "spring",
+    stiffness: 300,
+    damping: 30
+  };
+
+  const modalVariants = {
+    hidden: { opacity: 0, scale: 0, y: 0 },
+    visible: { opacity: 1, scale: 1, y: 0 },
+    exit: { opacity: 0, scale: 0, y: 0, transition: { duration: 0.25 } }
   };
 
   return (
@@ -43,26 +50,25 @@ export default function AnimatedModal({ isOpen, onClose, children, className = "
           />
 
           {/* Modal Container */}
-          <div className="relative w-full max-w-lg flex items-center justify-center pointer-events-auto">
+          <motion.div 
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+            variants={modalVariants}
+            transition={transitionSettings}
+            className="relative w-full max-w-lg flex items-center justify-center pointer-events-auto"
+          >
             {/* Morphing Background Layer */}
             <motion.div
               layoutId={layoutId}
-              transition={transitionSettings}
               className={`absolute inset-0 bg-surface rounded-3xl shadow-2xl border border-white/10 z-0 ${className}`}
             />
 
-            {/* Content Layer (Fades in independently) */}
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 10 }}
-              transition={{ delay: 0.2, duration: 0.4 }}
-              className="relative z-10 w-full max-h-[90vh] overflow-y-auto hide-scrollbar p-1"
-              onClick={(e) => e.stopPropagation()}
-            >
+            {/* Content Layer */}
+            <div className="relative z-10 w-full max-h-[90vh] overflow-y-auto hide-scrollbar p-1" onClick={(e) => e.stopPropagation()}>
               {children}
-            </motion.div>
-          </div>
+            </div>
+          </motion.div>
         </div>
       )}
     </AnimatePresence>

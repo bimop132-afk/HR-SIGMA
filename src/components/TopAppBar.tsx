@@ -12,8 +12,8 @@ export default function TopAppBar({ onToggle }: TopAppBarProps) {
   return (
     <header className="fixed top-0 w-full z-50 bg-black/80 backdrop-blur-xl border-b border-white/5 shadow-2xl shadow-black/40 flex justify-between items-center px-6 h-16">
       <div className="flex items-center gap-3">
-        <span onClick={onToggle} className="material-symbols-outlined text-red-500 active:scale-95 duration-200 cursor-pointer">menu</span>
-        <h1 className="font-manrope font-extrabold tracking-tight text-xl text-red-400">HR SIGMA</h1>
+        <div className="w-10 lg:hidden" /> {/* Spacer for the sidebar toggle on mobile */}
+        <h1 className="font-manrope font-extrabold tracking-tight text-xl text-red-500 ml-8 lg:ml-10">HR SIGMA</h1>
       </div>
       <div className="flex items-center gap-6">
         <div className="hidden md:flex gap-8 text-sm font-medium">

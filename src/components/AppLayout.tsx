@@ -37,7 +37,7 @@ export default function AppLayout({ children, isTransactional = false, showBotto
       )}
       
       <div className="flex min-h-screen pt-16">
-        <Sidebar isOpen={isOpen} onClose={() => setIsOpen(false)} />
+        <Sidebar isOpen={isOpen} onClose={() => setIsOpen(false)} onToggle={toggleSidebar} />
         
         {/* Dynamic expansion logic. lg:ml-72 only applies if isOpen is true */}
         <main className={`flex-1 transition-all duration-300 ease-in-out ${isOpen ? "lg:ml-72" : "lg:ml-0"} w-full overflow-x-hidden`} style={{ minHeight: "calc(100vh - 64px)" }}>

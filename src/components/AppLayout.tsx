@@ -12,15 +12,11 @@ interface AppLayoutProps {
 }
 
 export default function AppLayout({ children, isTransactional = false, showBottomNav = true }: AppLayoutProps) {
-  const [isOpen, setIsOpen] = useState(true);
+  const [isOpen, setIsOpen] = useState(false);
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
     setIsClient(true);
-    // Hide sidebar strictly on mobile load
-    if (window.innerWidth < 1024) {
-      setIsOpen(false);
-    }
   }, []);
 
   const toggleSidebar = () => setIsOpen(!isOpen);

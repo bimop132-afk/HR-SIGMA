@@ -51,17 +51,21 @@ export default function AnimatedModal({ isOpen, onClose, children, className = "
 
           {/* Modal Container */}
           <motion.div 
-            layoutId={layoutId}
             initial="hidden"
             animate="visible"
             exit="exit"
             variants={modalVariants}
             transition={transitionSettings}
-            className={`relative w-full max-w-lg flex flex-col bg-surface rounded-3xl shadow-2xl border border-white/10 pointer-events-auto ${className}`}
-            onClick={(e) => e.stopPropagation()}
+            className={`relative w-full pointer-events-auto ${className || 'max-w-lg'}`}
           >
+            {/* Morphing Background Layer */}
+            <motion.div
+              layoutId={layoutId}
+              className="absolute inset-0 bg-surface rounded-[2rem] shadow-2xl border border-white/10 z-0"
+            />
+
             {/* Content Layer */}
-            <div className="relative z-10 w-full max-h-[90vh] overflow-y-auto hide-scrollbar p-1">
+            <div className="relative z-10 w-full max-h-[90vh] flex flex-col hide-scrollbar" onClick={(e) => e.stopPropagation()}>
               {children}
             </div>
           </motion.div>

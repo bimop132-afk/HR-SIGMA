@@ -102,182 +102,180 @@ export default function FloatingActionButton() {
         </button>
       </div>
 
-      <AnimatedModal isOpen={isOpen} onClose={closeModal} layoutId="add-employee-action">
-          <div className="bg-surface relative z-10 w-full max-w-2xl rounded-[2rem] shadow-2xl p-6 md:p-10 border border-white/10 flex flex-col max-h-[90vh]">
-            <div className="flex justify-between items-center mb-6">
-              <div>
-                <h3 className="font-headline text-2xl font-bold text-on-surface">Input Karyawan Lama</h3>
-                <p className="text-on-surface-variant text-sm mt-1">Form untuk menginput data karyawan beserta NIP yang sudah ada.</p>
+      <AnimatedModal isOpen={isOpen} onClose={closeModal} layoutId="add-employee-action" className="max-w-2xl">
+          <div className="flex justify-between items-center px-6 md:px-10 pt-6 md:pt-10 pb-4">
+            <div>
+              <h3 className="font-headline text-2xl font-bold text-on-surface">Input Karyawan Lama</h3>
+              <p className="text-on-surface-variant text-sm mt-1">Form untuk menginput data karyawan beserta NIP yang sudah ada.</p>
+            </div>
+            <button 
+              onClick={closeModal} 
+              className="w-10 h-10 rounded-full flex items-center justify-center bg-surface-container hover:bg-surface-container-high transition-colors text-on-surface-variant"
+            >
+              <span className="material-symbols-outlined">close</span>
+            </button>
+          </div>
+
+          <form onSubmit={handleSubmit} className="flex flex-col gap-6 overflow-y-auto px-6 md:px-10 pb-6 md:pb-10 custom-scrollbar">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-2">
+              <div className="space-y-2">
+                <label className="text-xs font-label text-on-surface-variant uppercase tracking-widest">NAMA LENGKAP</label>
+                <input
+                  type="text"
+                  required
+                  value={namaLengkap}
+                  onChange={(e) => setNamaLengkap(e.target.value)}
+                  className="w-full bg-surface-container-highest border border-white/5 rounded-xl px-4 py-4 text-on-surface focus:ring-2 focus:ring-primary outline-none transition-all placeholder:text-on-surface-variant/50"
+                  placeholder="Contoh: Budi Santoso"
+                />
               </div>
-              <button 
-                onClick={closeModal} 
-                className="w-10 h-10 rounded-full flex items-center justify-center bg-surface-container hover:bg-surface-container-high transition-colors text-on-surface-variant"
-              >
-                <span className="material-symbols-outlined">close</span>
-              </button>
+
+              <div className="space-y-2">
+                <label className="text-xs font-label text-on-surface-variant uppercase tracking-widest">NO NIK KTP</label>
+                <input
+                  type="text"
+                  required
+                  maxLength={16}
+                  value={nik}
+                  onChange={(e) => setNik(e.target.value)}
+                  className="w-full bg-surface-container-highest border border-white/5 rounded-xl px-4 py-4 text-on-surface focus:ring-2 focus:ring-primary outline-none transition-all placeholder:text-on-surface-variant/50"
+                  placeholder="16 Digit NIK"
+                />
+              </div>
             </div>
 
-            <form onSubmit={handleSubmit} className="flex flex-col gap-6 overflow-y-auto pr-4 custom-scrollbar">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <label className="text-xs font-label text-on-surface-variant uppercase tracking-widest">NAMA LENGKAP</label>
-                  <input
-                    type="text"
-                    required
-                    value={namaLengkap}
-                    onChange={(e) => setNamaLengkap(e.target.value)}
-                    className="w-full bg-surface-container-highest border border-white/5 rounded-xl px-4 py-4 text-on-surface focus:ring-2 focus:ring-primary outline-none transition-all placeholder:text-on-surface-variant/50"
-                    placeholder="Contoh: Budi Santoso"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-xs font-label text-on-surface-variant uppercase tracking-widest">NO NIK KTP</label>
-                  <input
-                    type="text"
-                    required
-                    maxLength={16}
-                    value={nik}
-                    onChange={(e) => setNik(e.target.value)}
-                    className="w-full bg-surface-container-highest border border-white/5 rounded-xl px-4 py-4 text-on-surface focus:ring-2 focus:ring-primary outline-none transition-all placeholder:text-on-surface-variant/50"
-                    placeholder="16 Digit NIK"
-                  />
-                </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <label className="text-xs font-label text-on-surface-variant uppercase tracking-widest">NO KARYAWAN (NIP)</label>
+                <input
+                  type="text"
+                  required
+                  value={nip}
+                  onChange={(e) => setNip(e.target.value)}
+                  className="w-full bg-surface-container-highest border border-primary/40 rounded-xl px-4 py-4 text-on-surface focus:ring-2 focus:ring-primary outline-none transition-all placeholder:text-on-surface-variant/50"
+                  placeholder="NIP Lama (Contoh: 2501LPK10123)"
+                />
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <label className="text-xs font-label text-on-surface-variant uppercase tracking-widest">NO KARYAWAN (NIP)</label>
-                  <input
-                    type="text"
-                    required
-                    value={nip}
-                    onChange={(e) => setNip(e.target.value)}
-                    className="w-full bg-surface-container-highest border border-primary/40 rounded-xl px-4 py-4 text-on-surface focus:ring-2 focus:ring-primary outline-none transition-all placeholder:text-on-surface-variant/50"
-                    placeholder="NIP Lama (Contoh: 2501LPK10123)"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-xs font-label text-on-surface-variant uppercase tracking-widest">TANGGAL MASUK LAMA</label>
-                  <input
-                    type="date"
-                    required
-                    value={tanggalMasuk}
-                    onChange={(e) => setTanggalMasuk(e.target.value)}
-                    className="w-full bg-surface-container-highest border border-white/5 rounded-xl px-4 py-4 text-on-surface focus:ring-2 focus:ring-primary h-14"
-                  />
-                </div>
+              <div className="space-y-2">
+                <label className="text-xs font-label text-on-surface-variant uppercase tracking-widest">TANGGAL MASUK LAMA</label>
+                <input
+                  type="date"
+                  required
+                  value={tanggalMasuk}
+                  onChange={(e) => setTanggalMasuk(e.target.value)}
+                  className="w-full bg-surface-container-highest border border-white/5 rounded-xl px-4 py-4 text-on-surface focus:ring-2 focus:ring-primary h-14"
+                />
               </div>
+            </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-1 gap-6">
-                <div className="space-y-2">
-                  <label className="text-xs font-label text-on-surface-variant uppercase tracking-widest">NOMOR BPJS (OPSIONAL)</label>
-                  <input
-                    type="text"
-                    value={nomorBpjs}
-                    onChange={(e) => setNomorBpjs(e.target.value)}
-                    className="w-full bg-surface-container-highest border border-white/5 rounded-xl px-4 py-4 text-on-surface focus:ring-2 focus:ring-primary outline-none transition-all placeholder:text-on-surface-variant/50"
-                    placeholder="Contoh: 0001234567890"
-                  />
-                </div>
+            <div className="grid grid-cols-1 md:grid-cols-1 gap-6">
+              <div className="space-y-2">
+                <label className="text-xs font-label text-on-surface-variant uppercase tracking-widest">NOMOR BPJS (OPSIONAL)</label>
+                <input
+                  type="text"
+                  value={nomorBpjs}
+                  onChange={(e) => setNomorBpjs(e.target.value)}
+                  className="w-full bg-surface-container-highest border border-white/5 rounded-xl px-4 py-4 text-on-surface focus:ring-2 focus:ring-primary outline-none transition-all placeholder:text-on-surface-variant/50"
+                  placeholder="Contoh: 0001234567890"
+                />
               </div>
+            </div>
 
-              {/* Jalur Masuk */}
-              <div className="space-y-4">
-                <label className="text-on-surface-variant font-label text-xs uppercase tracking-widest block">
-                  Jalur Masuk Lama
+            {/* Jalur Masuk */}
+            <div className="space-y-4">
+              <label className="text-on-surface-variant font-label text-xs uppercase tracking-widest block">
+                Jalur Masuk Lama
+              </label>
+              <div className="flex gap-4">
+                <label className="flex-1 cursor-pointer">
+                  <input
+                    checked={jalurMasuk === "LPK"}
+                    onChange={() => setJalurMasuk("LPK")}
+                    className="hidden peer"
+                    type="radio"
+                    name="jalur"
+                  />
+                  <div className="w-full py-4 rounded-xl border border-white/5 text-center transition-all bg-surface-container-highest peer-checked:bg-primary/20 peer-checked:border-primary peer-checked:text-primary font-bold">
+                    LPK
+                  </div>
                 </label>
-                <div className="flex gap-4">
-                  <label className="flex-1 cursor-pointer">
-                    <input
-                      checked={jalurMasuk === "LPK"}
-                      onChange={() => setJalurMasuk("LPK")}
-                      className="hidden peer"
-                      type="radio"
-                      name="jalur"
-                    />
-                    <div className="w-full py-4 rounded-xl border border-white/5 text-center transition-all bg-surface-container-highest peer-checked:bg-primary/20 peer-checked:border-primary peer-checked:text-primary font-bold">
-                      LPK
-                    </div>
-                  </label>
-                  <label className="flex-1 cursor-pointer">
-                    <input
-                      checked={jalurMasuk === "UMUM"}
-                      onChange={() => setJalurMasuk("UMUM")}
-                      className="hidden peer"
-                      type="radio"
-                      name="jalur"
-                    />
-                    <div className="w-full py-4 rounded-xl border border-white/5 text-center transition-all bg-surface-container-highest peer-checked:bg-primary/20 peer-checked:border-primary peer-checked:text-primary font-bold">
-                      UMUM
-                    </div>
-                  </label>
-                </div>
+                <label className="flex-1 cursor-pointer">
+                  <input
+                    checked={jalurMasuk === "UMUM"}
+                    onChange={() => setJalurMasuk("UMUM")}
+                    className="hidden peer"
+                    type="radio"
+                    name="jalur"
+                  />
+                  <div className="w-full py-4 rounded-xl border border-white/5 text-center transition-all bg-surface-container-highest peer-checked:bg-primary/20 peer-checked:border-primary peer-checked:text-primary font-bold">
+                    UMUM
+                  </div>
+                </label>
               </div>
+            </div>
 
-              {/* Jabatan & Sektor */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="space-y-2">
-                  <label className="text-xs font-label text-on-surface-variant uppercase tracking-widest block">Posisi</label>
-                  <select
-                    value={posisi}
-                    onChange={(e) => setPosisi(e.target.value)}
-                    className="w-full bg-surface-container-highest border border-white/5 rounded-xl px-4 py-4 text-on-surface focus:ring-2 focus:ring-primary appearance-none custom-select"
-                  >
-                    {["Helper Produksi", "PIC", "Foreman"].map((pos) => (
-                      <option key={pos} value={pos}>{pos}</option>
-                    ))}
-                  </select>
-                </div>
-                <div className="space-y-2">
-                  <label className="text-xs font-label text-on-surface-variant uppercase tracking-widest block">Sektor</label>
-                  <select
-                    value={sektor}
-                    onChange={(e) => setSektor(parseInt(e.target.value))}
-                    className="w-full bg-surface-container-highest border border-white/5 rounded-xl px-4 py-4 text-on-surface focus:ring-2 focus:ring-primary appearance-none custom-select"
-                  >
-                    {[1, 2, 3, 4, 5, 6, 8, 9, 10].map((num) => (
-                      <option key={num} value={num}>Sektor {num}</option>
-                    ))}
-                  </select>
-                </div>
-                <div className="space-y-2">
-                  <label className="text-xs font-label text-on-surface-variant uppercase tracking-widest block">Regu</label>
-                  <select
-                    value={regu}
-                    onChange={(e) => setRegu(parseInt(e.target.value))}
-                    className="w-full bg-surface-container-highest border border-white/5 rounded-xl px-4 py-4 text-on-surface focus:ring-2 focus:ring-primary appearance-none custom-select"
-                  >
-                    {[1, 2, 3].map((num) => (
-                      <option key={num} value={num}>Regu {num}</option>
-                    ))}
-                  </select>
-                </div>
+            {/* Jabatan & Sektor */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="space-y-2">
+                <label className="text-xs font-label text-on-surface-variant uppercase tracking-widest block">Posisi</label>
+                <select
+                  value={posisi}
+                  onChange={(e) => setPosisi(e.target.value)}
+                  className="w-full bg-surface-container-highest border border-white/5 rounded-xl px-4 py-4 text-on-surface focus:ring-2 focus:ring-primary appearance-none custom-select"
+                >
+                  {["Helper Produksi", "PIC", "Foreman"].map((pos) => (
+                    <option key={pos} value={pos}>{pos}</option>
+                  ))}
+                </select>
               </div>
+              <div className="space-y-2">
+                <label className="text-xs font-label text-on-surface-variant uppercase tracking-widest block">Sektor</label>
+                <select
+                  value={sektor}
+                  onChange={(e) => setSektor(parseInt(e.target.value))}
+                  className="w-full bg-surface-container-highest border border-white/5 rounded-xl px-4 py-4 text-on-surface focus:ring-2 focus:ring-primary appearance-none custom-select"
+                >
+                  {[1, 2, 3, 4, 5, 6, 8, 9, 10].map((num) => (
+                    <option key={num} value={num}>Sektor {num}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-label text-on-surface-variant uppercase tracking-widest block">Regu</label>
+                <select
+                  value={regu}
+                  onChange={(e) => setRegu(parseInt(e.target.value))}
+                  className="w-full bg-surface-container-highest border border-white/5 rounded-xl px-4 py-4 text-on-surface focus:ring-2 focus:ring-primary appearance-none custom-select"
+                >
+                  {[1, 2, 3].map((num) => (
+                    <option key={num} value={num}>Regu {num}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
 
-              <div className="pt-8 flex gap-4 mt-auto">
-                <button
-                  type="button"
-                  onClick={closeModal}
-                  className="w-1/3 py-4 bg-surface-container-highest bg-opacity-50 text-on-surface-variant rounded-xl font-bold hover:bg-opacity-100 transition-all cursor-pointer"
-                >
-                  Batal
-                </button>
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="w-2/3 py-4 liquid-light text-on-primary-fixed rounded-xl font-bold font-headline shadow-[0_0_20px_rgba(202,190,255,0.4)] flex justify-center items-center hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-70 disabled:cursor-not-allowed cursor-pointer"
-                >
-                  {isSubmitting ? (
-                    <span className="material-symbols-outlined animate-spin">progress_activity</span>
-                  ) : (
-                    "Simpan Data Lama"
-                  )}
-                </button>
-              </div>
-            </form>
-          </div>
+            <div className="pt-8 flex gap-4 mt-auto">
+              <button
+                type="button"
+                onClick={closeModal}
+                className="w-1/3 py-4 bg-surface-container-highest bg-opacity-50 text-on-surface-variant rounded-xl font-bold hover:bg-opacity-100 transition-all cursor-pointer"
+              >
+                Batal
+              </button>
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="w-2/3 py-4 liquid-light text-on-primary-fixed rounded-xl font-bold font-headline shadow-[0_0_20px_rgba(202,190,255,0.4)] flex justify-center items-center hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-70 disabled:cursor-not-allowed cursor-pointer"
+              >
+                {isSubmitting ? (
+                  <span className="material-symbols-outlined animate-spin">progress_activity</span>
+                ) : (
+                  "Simpan Data Lama"
+                )}
+              </button>
+            </div>
+          </form>
       </AnimatedModal>
       <style dangerouslySetInnerHTML={{__html: `
         .custom-select {

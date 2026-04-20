@@ -125,16 +125,15 @@ export default function PenaltyModal({ onSuccess }: { onSuccess: () => void }) {
         </button>
       </div>
 
-      <AnimatedModal isOpen={isOpen} onClose={closeModal} layoutId="penalty-action">
-        <div className="bg-surface relative z-10 w-full max-w-lg rounded-3xl shadow-2xl p-6 md:p-8 border border-white/10 flex flex-col max-h-[90vh]">
-          <div className="flex justify-between items-center mb-6">
-            <h3 className="font-headline text-2xl font-bold text-on-surface">Tambah Denda Baru</h3>
-            <button onClick={closeModal} className="w-10 h-10 rounded-full flex items-center justify-center bg-surface-container hover:bg-surface-container-high transition-colors text-on-surface-variant cursor-pointer">
-              <span className="material-symbols-outlined">close</span>
-            </button>
-          </div>
+      <AnimatedModal isOpen={isOpen} onClose={closeModal} layoutId="penalty-action" className="max-w-lg">
+        <div className="flex justify-between items-center px-6 md:px-8 pt-6 md:pt-8 pb-4">
+          <h3 className="font-headline text-2xl font-bold text-on-surface">Tambah Denda Baru</h3>
+          <button onClick={closeModal} className="w-10 h-10 rounded-full flex items-center justify-center bg-surface-container hover:bg-surface-container-high transition-colors text-on-surface-variant cursor-pointer">
+            <span className="material-symbols-outlined">close</span>
+          </button>
+        </div>
 
-            <form onSubmit={handleSubmit} className="flex flex-col gap-6 overflow-y-auto pr-2 custom-scrollbar">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-6 overflow-y-auto px-6 md:px-8 pb-6 md:pb-8 custom-scrollbar">
               <div className="space-y-2 relative">
                 <label className="text-xs font-label text-on-surface-variant uppercase tracking-widest">Cari Karyawan (NIP / Nama)</label>
                 <div className="relative">

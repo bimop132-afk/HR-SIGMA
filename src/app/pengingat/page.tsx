@@ -51,7 +51,7 @@ export default async function PengingatPage({ searchParams }: { searchParams: Pr
 
   return (
     <AppLayout>
-      <div className="p-6 md:p-10 mb-20 max-w-2xl mx-auto lg:mx-0 w-full">
+      <div className="p-6 md:p-10 mb-20 max-w-2xl mx-auto w-full">
         {/* Hero Header */}
         <div className="mb-8">
           <h2 className="font-headline font-extrabold text-3xl text-on-surface mb-2">🔔 Pengingat Kontrak</h2>

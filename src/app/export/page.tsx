@@ -84,7 +84,7 @@ export default function ExportPage() {
 
   return (
     <AppLayout>
-      <div className="p-6 md:p-10 pb-32 max-w-5xl mx-auto lg:mx-0 w-full">
+      <div className="p-6 md:p-10 pb-32 max-w-5xl mx-auto w-full">
 
         {/* Hero Header */}
         <div className="mb-10">

@@ -156,7 +156,7 @@ export default function DokumenPage() {
 
   return (
     <AppLayout>
-      <div className="p-6 md:p-10 mb-28 max-w-4xl mx-auto lg:mx-0 w-full">
+      <div className="p-6 md:p-10 mb-28 max-w-4xl mx-auto w-full">
         {/* Editorial Header */}
         <section className="space-y-2 mb-8 text-left">
           <h2 className="font-headline font-extrabold text-3xl tracking-tight text-on-surface">

@@ -1,5 +1,6 @@
 "use client";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface AnimatedModalProps {
@@ -11,8 +12,10 @@ interface AnimatedModalProps {
 }
 
 export default function AnimatedModal({ isOpen, onClose, children, className = "", layoutId }: AnimatedModalProps) {
-  // Prevent scrolling when modal is open
+  const [mounted, setMounted] = useState(false);
+
   useEffect(() => {
+    setMounted(true);
     if (isOpen) {
       document.body.style.overflow = "hidden";
     } else {
@@ -35,7 +38,7 @@ export default function AnimatedModal({ isOpen, onClose, children, className = "
     exit: { opacity: 0, scale: 0, y: 0, transition: { duration: 0.25 } }
   };
 
-  return (
+  const modalContent = (
     <AnimatePresence>
       {isOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 overflow-hidden pointer-events-none">
@@ -73,4 +76,8 @@ export default function AnimatedModal({ isOpen, onClose, children, className = "
       )}
     </AnimatePresence>
   );
+
+  // Use Portal to prevent the fixed modal from being bounded by parent CSS contexts like transform/overflow
+  if (!mounted) return null;
+  return createPortal(modalContent, document.body);
 }

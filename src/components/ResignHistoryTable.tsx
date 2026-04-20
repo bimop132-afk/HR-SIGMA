@@ -95,7 +95,7 @@ export default function ResignHistoryTable({ data }: { data: ResignationInfo[] }
                       <span className="material-symbols-outlined">more_vert</span>
                     </button>
                     {openMenuId === item.id && (
-                      <div className="absolute right-8 top-10 z-50 bg-surface-container-highest backdrop-blur-2xl border border-white/10 rounded-2xl shadow-2xl shadow-black/80 py-2 min-w-[200px] flex flex-col text-left animate-pop-in">
+                      <div className="absolute right-12 top-10 z-[100] bg-surface-container-highest backdrop-blur-2xl border border-white/10 rounded-2xl shadow-2xl shadow-black/80 py-2 min-w-[180px] flex flex-col text-left animate-pop-in">
                         <Link href={`/resign/${item.id}`} className="px-5 py-3 text-sm font-medium transition-colors hover:bg-white/5 text-on-surface flex items-center gap-3">
                           <span className="material-symbols-outlined text-[18px]">visibility</span> Lihat Detail
                         </Link>

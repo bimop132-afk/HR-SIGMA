@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useTransition } from "react";
+import { useTransition, useState, useEffect } from "react";
 import MorphingTabs from "./ui/MorphingTabs";
 
 export default function EmployeeFilters({ currentStatus }: { currentStatus?: string }) {
@@ -28,17 +28,28 @@ export default function EmployeeFilters({ currentStatus }: { currentStatus?: str
     });
   };
 
-  let activeTab = "Semua";
-  if (currentStatus === "AKTIF") activeTab = "Aktif";
-  if (currentStatus === "NON_AKTIF") activeTab = "Non-Aktif";
+  let derivedTab = "Semua";
+  if (currentStatus === "AKTIF") derivedTab = "Aktif";
+  if (currentStatus === "NON_AKTIF") derivedTab = "Non-Aktif";
+
+  const [optimisticTab, setOptimisticTab] = useState(derivedTab);
+
+  useEffect(() => {
+    setOptimisticTab(derivedTab);
+  }, [derivedTab]);
+
+  const handleFilterOptimistic = (tabName: string) => {
+    setOptimisticTab(tabName);
+    handleFilter(tabName);
+  };
 
   return (
     <section className="mb-10 -mx-6">
-      <div className="flex gap-3 overflow-x-auto hide-scrollbar px-6 pb-2">
+      <div className={`flex gap-3 overflow-x-auto hide-scrollbar px-6 pb-2 transition-opacity duration-300 ${isPending ? "opacity-70 pointer-events-none" : "opacity-100"}`}>
         <MorphingTabs 
           tabs={["Semua", "Aktif", "Non-Aktif"]}
-          activeTab={activeTab}
-          onTabChange={handleFilter}
+          activeTab={optimisticTab}
+          onTabChange={handleFilterOptimistic}
         />
       </div>
     </section>

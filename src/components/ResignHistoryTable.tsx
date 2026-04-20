@@ -32,7 +32,7 @@ export default function ResignHistoryTable({ data }: { data: ResignationInfo[] }
         </div>
       </div>
       
-      <div className="glass rounded-3xl overflow-x-auto border border-white/5 pb-24">
+      <div className="glass rounded-3xl overflow-x-auto border border-white/5 pb-48">
         <table className="w-full text-left border-collapse min-w-[600px]">
           <thead>
             <tr className="bg-white/5">

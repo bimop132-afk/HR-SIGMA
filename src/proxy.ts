@@ -3,10 +3,11 @@ import { NextRequest, NextResponse } from "next/server";
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Allow auth API routes and login page
+  // Allow auth API routes, login page, and public onboarding page
   if (
     pathname.startsWith("/api/auth") ||
     pathname.startsWith("/login") ||
+    pathname.startsWith("/onboarding") ||
     pathname.startsWith("/_next") ||
     pathname.startsWith("/favicon.ico")
   ) {

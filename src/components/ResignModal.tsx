@@ -259,7 +259,6 @@ export default function ResignModal() {
                 />
               </div>
             </form>
-          </div>
       </AnimatedModal>
       <style dangerouslySetInnerHTML={{__html: `
         .custom-select {

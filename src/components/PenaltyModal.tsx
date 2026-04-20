@@ -242,7 +242,6 @@ export default function PenaltyModal({ onSuccess }: { onSuccess: () => void }) {
                 </button>
               </div>
             </form>
-          </div>
       </AnimatedModal>
       <style dangerouslySetInnerHTML={{__html: `
         .custom-select {

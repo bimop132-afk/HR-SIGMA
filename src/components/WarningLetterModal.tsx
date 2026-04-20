@@ -231,7 +231,6 @@ export default function WarningLetterModal({
                 </button>
               </div>
             </form>
-          </div>
       </AnimatedModal>
       <style dangerouslySetInnerHTML={{__html: `
         .custom-select {
